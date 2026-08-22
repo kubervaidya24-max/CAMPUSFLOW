@@ -7,11 +7,17 @@ import { config } from './config/env.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { sanitize } from './middleware/sanitize.js';
+import { apiLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
 // Security HTTP headers
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // CORS configuration
 app.use(
@@ -29,9 +35,15 @@ if (!config.isTest) {
   app.use(morgan(config.isProduction ? 'combined' : 'dev'));
 }
 
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing with strict size limits (prevent payload DoS)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// NoSQL query injection sanitization
+app.use(sanitize);
+
+// Global API rate limiting
+app.use('/api', apiLimiter);
 
 // Mount API routes
 app.use('/api', apiRoutes);

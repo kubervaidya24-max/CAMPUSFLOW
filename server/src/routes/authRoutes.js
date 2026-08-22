@@ -13,12 +13,13 @@ import {
   refreshTokenSchema,
 } from '../validators/authValidators.js';
 import { authenticate } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
-// Public routes
-router.post('/register', validate(registerSchema), register);
-router.post('/login', validate(loginSchema), login);
+// Public authentication routes (guarded by authLimiter)
+router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/login', authLimiter, validate(loginSchema), login);
 router.post('/refresh', validate(refreshTokenSchema), refreshToken);
 router.post('/logout', logout);
 

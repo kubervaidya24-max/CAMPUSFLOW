@@ -182,4 +182,28 @@ graph TD
 - **Immediate Suspension Lockout**: When an administrator suspends a user (`isActive: false`), the `authenticate` middleware instantly blocks all subsequent API calls from that user's tokens, and `login` rejects new sign-in attempts.
 - **Admin Self-Lockout Prevention**: The controller strictly forbids administrators from suspending or demoting their own user accounts.
 
+---
+
+## 12. Level 13: Defensive Security Architecture & Threat Mitigation
+
+### Request Pipeline & Threat Interceptor:
+```mermaid
+graph TD
+    ClientReq["Incoming HTTP Request"] --> Helmet["Helmet HTTP Headers\n(CORP, HSTS, X-Content-Type)"]
+    Helmet --> RateLimit["express-rate-limit\n(apiLimiter: 1000/15m, authLimiter: 15/15m)"]
+    RateLimit --> BodyLimit["2MB Payload Size Guard\n(DoS Protection)"]
+    BodyLimit --> Sanitizer["mongoSanitize Middleware\n(Recursive $, . Key Stripper)"]
+    Sanitizer --> AuthGuard["authenticate Middleware\n(JWT & Suspension Verification)"]
+    AuthGuard --> RBAC["authorize('role') Middleware\n(Role Enforcement)"]
+    RBAC --> IDOR["Controller Ownership Binding\n(Resource.findOne({ _id, user: req.user._id }))"]
+    IDOR --> DB[("MongoDB")]
+```
+
+### Threat Mitigation Specifications:
+1. **NoSQL Query Operator Sanitization**: `sanitize.js` intercepts raw payloads and removes any keys matching `/^\$/` or containing `.` to prevent query operator injection.
+2. **Brute Force & Rate Limiting**: `authLimiter` limits authentication attempts to 15 per 15 minutes, protecting against dictionary attacks.
+3. **IDOR & Multi-Tenant Isolation**: Private resources (resumes, placements, submissions) are bound explicitly to `req.user._id` in database operations.
+4. **Data Minimization**: User schema `toJSON` transform automatically strips sensitive attributes (`password`, `refreshToken`) on JSON serialization.
+
+
 

@@ -180,15 +180,28 @@ npm run dev
 
 ---
 
-## 🧪 Testing & Quality Assurance (Level 12)
+## 🔒 Security Hardening & Audit (Level 13)
+
+Comprehensive security audit report and threat matrix documented in [docs/security.md](file:///e:/CAMPUSFLOW/docs/security.md).
+
+- **NoSQL Injection Defense**: Recursive `sanitize` middleware stripping `$` and `.` operators.
+- **Rate Limiting Protection**: `authLimiter` (15 req/15m) on authentication routes and `apiLimiter` (1000 req/15m) globally.
+- **IDOR Tenant Isolation**: All private resources (resumes, job applications, submissions) strictly bound to `req.user._id`.
+- **Privilege Escalation Defense**: Server-side RBAC verification (`authorize`) + real-time suspended account token invalidation.
+- **Sensitive Field Stripping**: Schema serialization `toJSON` hooks stripping `password` and `refreshToken`.
+- **Payload Limit Caps**: 2MB body parser limits preventing payload exhaustion DoS.
+
+---
+
+## 🧪 Testing & Quality Assurance (Level 13)
 
 Comprehensive testing architecture documented in [docs/testing.md](file:///e:/CAMPUSFLOW/docs/testing.md).
 
 ```bash
-# Run all tests across monorepo (182 tests total: 141 backend + 41 frontend across 27 test suites)
+# Run all tests across monorepo (199 tests total: 158 backend + 41 frontend across 28 test suites)
 npm run test
 
-# Run backend integration, unit, and E2E tests (15 suites, 141 tests)
+# Run backend integration, unit, E2E, and security tests (16 suites, 158 tests)
 npm run test:server
 
 # Run frontend component tests (12 suites, 41 tests)
