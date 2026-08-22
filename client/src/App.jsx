@@ -18,6 +18,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
 import { ProjectEditorPage } from './pages/ProjectEditorPage';
 import { PlacementPage } from './pages/PlacementPage';
+import { ResumeBuilderPage } from './pages/ResumeBuilderPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -184,6 +185,14 @@ export const App = () => {
               element={
                 <ProtectedRoute>
                   <PlacementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="resumes"
+              element={
+                <ProtectedRoute>
+                  <ResumeBuilderPage />
                 </ProtectedRoute>
               }
             />

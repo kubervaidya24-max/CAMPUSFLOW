@@ -1,6 +1,6 @@
 # CampusFlow 🎓
 
-> **Unified Platform for College Students** — Academics, Deliverables, Team Projects & Kanban, Real-Time Socket.IO Chat & Notifications, Placement Prep & Career Growth.
+> **Unified Platform for College Students** — Academics, Deliverables, Team Projects & Kanban, Real-Time Socket.IO Chat & Notifications, Placement Prep & Career Growth, Dynamic Resume Builder & PDF Export.
 
 [![CampusFlow CI](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
@@ -13,12 +13,13 @@
 [![Chat](https://img.shields.io/badge/Chat-Socket.IO%20Realtime-orange.svg)](https://socket.io/)
 [![Notifications](https://img.shields.io/badge/Notifications-Centralized%20Realtime-rose.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 [![Placements](https://img.shields.io/badge/Placements-DSA%20%26%20Job%20Pipeline-amber.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
+[![Resume Builder](https://img.shields.io/badge/Resume%20Builder-ATS%20%26%20PDF%20Export-purple.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 
 ---
 
 ## 📌 Project Overview
 
-**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for academic courses, assignment submissions, collaborative project workspaces with interactive Kanban boards, real-time Socket.IO chat, centralized multi-channel notifications, placement preparation & dynamic algorithmic analytics, and career growth tracking.
+**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for academic courses, assignment submissions, collaborative project workspaces with interactive Kanban boards, real-time Socket.IO chat, centralized multi-channel notifications, placement preparation & dynamic algorithmic analytics, and an ATS-ready dynamic resume builder with high-fidelity PDF export.
 
 ---
 
@@ -29,12 +30,12 @@ campusflow/
 ├── client/                     # Frontend (React 18, Vite, Tailwind CSS, TanStack Query, Axios, Socket.IO Client)
 │   ├── public/                 # Static assets (Favicon, SVG logos)
 │   ├── src/
-│   │   ├── components/         # Reusable UI (Navbar, Footer, NotificationBell, NotificationPanel, CourseCard, AssignmentCard, ProjectCard, KanbanBoard, ProjectChat, ProtectedRoute)
+│   │   ├── components/         # Reusable UI (Navbar, Footer, NotificationBell, CourseCard, AssignmentCard, ProjectCard, KanbanBoard, ProjectChat, ModernTemplate, DualColumnTemplate, ProtectedRoute)
 │   │   ├── context/            # Global AuthContext & session restore provider
 │   │   ├── hooks/              # Custom hooks (useProjectChat, useNotifications)
-│   │   ├── pages/              # Route pages (Landing, Login, Register, Dashboard, Profile, EditProfile, Courses, CourseDetails, CourseEditor, Assignments, AssignmentDetails, AssignmentEditor, Projects, ProjectDetails, ProjectEditor, PlacementPage, NotFound)
-│   │   ├── services/           # API & Socket clients (authService, userService, courseService, assignmentService, projectService, socketService, notificationService, placementService)
-│   │   ├── tests/              # Frontend smoke, auth, guard, profile, course, assignment, project, chat, notification, and placement tests (29 tests)
+│   │   ├── pages/              # Route pages (Landing, Login, Register, Dashboard, Profile, EditProfile, Courses, CourseDetails, CourseEditor, Assignments, AssignmentDetails, AssignmentEditor, Projects, ProjectDetails, ProjectEditor, PlacementPage, ResumeBuilderPage, NotFound)
+│   │   ├── services/           # API & Socket clients (authService, userService, courseService, assignmentService, projectService, socketService, notificationService, placementService, resumeService)
+│   │   ├── tests/              # Frontend smoke, auth, guard, profile, course, assignment, project, chat, notification, placement, and resume tests (32 tests)
 │   │   ├── App.jsx             # Root routing & AuthProvider wrapper
 │   │   ├── index.css           # Tailwind base styles & glassmorphism tokens
 │   │   └── main.jsx            # React 18 DOM mount
@@ -44,17 +45,17 @@ campusflow/
 ├── server/                     # Backend (Node.js, Express, Socket.IO, Mongoose, Zod, JWT)
 │   ├── src/
 │   │   ├── config/             # Environment variables (env.js) & MongoDB connection (db.js)
-│   │   ├── controllers/        # Request handlers (auth, user, course, assignment, submission, project, task, message, notification, placement, health)
+│   │   ├── controllers/        # Request handlers (auth, user, course, assignment, submission, project, task, message, notification, placement, resume, health)
 │   │   ├── middleware/         # Error handling, 404, JWT authentication, role authorization, validation
-│   │   ├── models/             # Mongoose schemas (User, Course, Assignment, Submission, Project, Task, ProjectActivity, Message, Notification, DSAProblem, JobApplication)
-│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/assignments, /api/submissions, /api/projects, /api/tasks, /api/notifications, /api/placements, /api/health)
+│   │   ├── models/             # Mongoose schemas (User, Course, Assignment, Submission, Project, Task, ProjectActivity, Message, Notification, DSAProblem, JobApplication, Resume)
+│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/assignments, /api/submissions, /api/projects, /api/tasks, /api/notifications, /api/placements, /api/resumes, /api/health)
 │   │   ├── services/           # Centralized business services (notificationService.js)
 │   │   ├── socket/             # Socket.IO server initialization, handshake auth, room guards (socketServer.js)
 │   │   ├── utils/              # Standardized API response, ApiError class, cookie helpers
-│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators, assignmentValidators, projectValidators, placementValidators)
+│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators, assignmentValidators, projectValidators, placementValidators, resumeValidators)
 │   │   ├── app.js              # Express app setup & middleware pipeline (Helmet, CORS, Morgan, CookieParser)
 │   │   └── server.js           # HTTP + Socket.IO server bootstrap & graceful shutdown
-│   ├── tests/                  # Backend Supertest & socket.io-client integration test suite (88 tests)
+│   ├── tests/                  # Backend Supertest & socket.io-client integration test suite (94 tests)
 │   └── package.json
 │
 ├── docs/                       # Architecture & Setup guides
@@ -86,46 +87,43 @@ campusflow/
 | **Level 6** | **Real-Time Chat & Socket.IO (Handshake Auth, Room Authorization, MongoDB Message Persistence, Typing Indicators, Online Presence)** | **Completed** ✅ |
 | **Level 7** | **Centralized Notification System (NotificationService, Multi-channel Event Triggers, MongoDB Compound Indexing, Socket.IO User Rooms, Navbar Bell & Popover Panel)** | **Completed** ✅ |
 | **Level 8** | **Placement Preparation & Application Tracking (DSA Practice Tracker, Non-hardcoded Analytics Engine, Daily Streak Calculation, 6-Stage Visual Job Application Pipeline)** | **Completed** ✅ |
-| Level 9 | Analytics, Admin Dashboard & Production Hardening | *Upcoming* |
+| **Level 9** | **Dynamic Resume Builder & PDF Export (Profile/Project Auto-Fill, Modern & Dual-Column ATS Templates, Split-Screen Real-Time Editor, Vectorized PDF Export Engine)** | **Completed** ✅ |
+| Level 10 | Analytics, Admin Dashboard & Production Hardening | *Upcoming* |
 
 ---
 
-## 💼 Level 8 Placement Preparation & Job Application Tracking
+## 📄 Level 9 Resume Builder & PDF Export Architecture
 
-### 1. DSA Analytics Engine & Streak Calculation Flow
+### 1. Resume Generation Pipeline
 ```
-User Solves Problem -> POST/PATCH /api/placements/dsa
+User (Student Profile & Projects)
   │
   ▼
-MongoDB Aggregation Pipeline
-  ├─ Total Solved & Completion Rate
-  ├─ Difficulty Distribution (Easy, Medium, Hard)
-  ├─ Topic Mastery Breakdown (Arrays, Strings, Trees, DP, Graphs, etc.)
-  └─ Daily/Weekly Streak Calculation (Chronological diff on solvedDate)
+Profile & Project Auto-Populator (GET /api/resumes/auto-fill)
+  │
+  ▼
+Resume Builder Engine (Interactive Section Editor)
+  │
+  ▼
+Layout Template Selector ('modern' | 'dual-column')
+  │
+  ▼
+Live Interactive Renderer (Real-time Markdown & Typographic Layout)
+  │
+  ▼
+High-Fidelity PDF Engine (Vectorized ATS-Compliant PDF Export)
 ```
 
-### 2. Visual Job Application Pipeline
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌───────────────────────┐
-│   APPLIED   │ ──► │     OA      │ ──► │  TECHNICAL  │ ──► │     HR      │ ──► │   OFFER  /  REJECTED  │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘     └───────────────────────┘
-```
-
-### 3. Placement REST Endpoints
+### 2. Resume REST Endpoints
 
 | Method | Endpoint | Authorization | Description |
 |---|---|---|---|
-| `GET` | `/api/placements/dsa` | Authenticated | Retrieve filtered DSA problems (topic, difficulty, status, platform, search) |
-| `POST` | `/api/placements/dsa` | Authenticated | Record new DSA problem entry |
-| `GET` | `/api/placements/dsa/:id` | Authenticated (Owner only) | Get single DSA problem details |
-| `PATCH` | `/api/placements/dsa/:id` | Authenticated (Owner only) | Update problem status, notes, difficulty rating |
-| `DELETE` | `/api/placements/dsa/:id` | Authenticated (Owner only) | Delete DSA problem entry |
-| `GET` | `/api/placements/dsa/analytics` | Authenticated | Dynamic calculated metrics (streaks, difficulty breakdown, topic mastery) |
-| `GET` | `/api/placements/jobs` | Authenticated | Retrieve job applications list with status filter |
-| `POST` | `/api/placements/jobs` | Authenticated | Create job application entry |
-| `PATCH` | `/api/placements/jobs/:id` | Authenticated (Owner only) | Update job stage / details |
-| `DELETE` | `/api/placements/jobs/:id` | Authenticated (Owner only) | Delete job application |
-| `GET` | `/api/placements/jobs/pipeline` | Authenticated | Grouped visual pipeline across all 6 stages |
+| `GET` | `/api/resumes` | Authenticated | List all resumes owned by current user |
+| `GET` | `/api/resumes/auto-fill` | Authenticated | Generate draft resume from profile and project records |
+| `POST` | `/api/resumes` | Authenticated | Create a new structured resume |
+| `GET` | `/api/resumes/:id` | Authenticated (Owner only) | Retrieve single resume by ID |
+| `PATCH` | `/api/resumes/:id` | Authenticated (Owner only) | Update resume sections, title, or template layout |
+| `DELETE` | `/api/resumes/:id` | Authenticated (Owner only) | Delete resume |
 
 ---
 
@@ -163,7 +161,7 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests across monorepo (117 tests total: 88 backend + 29 frontend)
+# Run all tests across monorepo (126 tests total: 94 backend + 32 frontend)
 npm run test
 
 # Run backend integration tests only

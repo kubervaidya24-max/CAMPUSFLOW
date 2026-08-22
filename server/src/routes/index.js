@@ -9,6 +9,7 @@ import projectRoutes from './projectRoutes.js';
 import taskRoutes from './taskRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import placementRoutes from './placementRoutes.js';
+import resumeRoutes from './resumeRoutes.js';
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.use('/projects', projectRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/placements', placementRoutes);
+router.use('/resumes', resumeRoutes);
 
 export default router;
