@@ -20,6 +20,7 @@ import { ProjectEditorPage } from './pages/ProjectEditorPage';
 import { PlacementPage } from './pages/PlacementPage';
 import { ResumeBuilderPage } from './pages/ResumeBuilderPage';
 import { AnalyticsDashboardPage } from './pages/AnalyticsDashboardPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -202,6 +203,14 @@ export const App = () => {
               element={
                 <ProtectedRoute>
                   <AnalyticsDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboardPage />
                 </ProtectedRoute>
               }
             />

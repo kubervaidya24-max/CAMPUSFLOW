@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema(
       default: 'student',
       index: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
     profile: {
       avatar: {
         type: String,

@@ -12,6 +12,7 @@ import {
   Briefcase,
   FileCheck,
   BarChart3,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationBell } from '../notifications/NotificationBell';
@@ -41,7 +42,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 10
+                Level 11
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
@@ -98,8 +99,19 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/30 text-xs font-bold text-indigo-300 transition-colors"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Analytics</span>
+                <span className="hidden sm:inline">Analytics</span>
               </Link>
+
+              {/* Admin Panel Link (Only visible to Admin role) */}
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-red-600/15 hover:bg-red-600/25 border border-red-500/40 text-xs font-bold text-red-400 transition-colors shadow-sm"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+                  <span>Admin</span>
+                </Link>
+              )}
             </div>
           )}
 

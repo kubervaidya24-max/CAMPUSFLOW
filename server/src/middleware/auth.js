@@ -40,6 +40,10 @@ export const authenticate = async (req, res, next) => {
       return next(ApiError.unauthorized('User belonging to this token no longer exists.'));
     }
 
+    if (user.isActive === false) {
+      return next(ApiError.forbidden('Your account has been suspended by an administrator.'));
+    }
+
     // Attach user to request
     req.user = user;
     next();

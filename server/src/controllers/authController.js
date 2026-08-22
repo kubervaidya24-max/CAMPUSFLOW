@@ -80,6 +80,11 @@ export const login = async (req, res, next) => {
       return next(ApiError.unauthorized('Invalid email or password.'));
     }
 
+    // 2.1 Check if account is suspended
+    if (user.isActive === false) {
+      return next(ApiError.forbidden('Your account has been suspended by an administrator.'));
+    }
+
     // 3. Generate new tokens
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();

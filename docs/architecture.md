@@ -158,3 +158,28 @@ graph TD
 4. **Placement Funnel & Career Pipeline (`JobApplication.aggregate` + `DSAProblem.aggregate`)**:
    - Groups applications by recruitment stages (`APPLIED` ➔ `OA` ➔ `TECHNICAL` ➔ `HR` ➔ `OFFER` / `REJECTED`) to dynamically calculate conversion and rejection rates alongside DSA difficulty and topic mastery progress.
 
+---
+
+## 11. Level 11: Administrative Layer & RBAC Governance Model
+
+### Admin Subsystem Architecture:
+```mermaid
+graph TD
+    AdminReq["Admin Request (/api/admin/*)"] --> AuthCheck["JWT Authenticate Middleware"]
+    AuthCheck -->|Valid Token| RoleCheck["RBAC Check: authorize('admin')"]
+    RoleCheck -->|Non-Admin| Forbidden["403 Forbidden Response"]
+    RoleCheck -->|Admin Role| AdminController["adminController.js"]
+    
+    AdminController --> StatsFlow["getAdminStats (Aggregation across Collections)"]
+    AdminController --> UserMgmt["getUsers / updateUser (Paginated Directory & Suspension)"]
+    AdminController --> CourseMod["getCourses / updateCourse / deleteCourse (Moderation)"]
+    AdminController --> ProjMod["getProjects / updateProject / deleteProject (Moderation)"]
+    AdminController --> AuditRep["getSystemReports (Activity & User Audit Stream)"]
+```
+
+### Security Guarantees:
+- **Server-Side Enforcement**: All administrative endpoints are guarded by `authorize('admin')`. Unauthorized attempts by Student or Faculty roles are actively blocked with `403 Forbidden`.
+- **Immediate Suspension Lockout**: When an administrator suspends a user (`isActive: false`), the `authenticate` middleware instantly blocks all subsequent API calls from that user's tokens, and `login` rejects new sign-in attempts.
+- **Admin Self-Lockout Prevention**: The controller strictly forbids administrators from suspending or demoting their own user accounts.
+
+

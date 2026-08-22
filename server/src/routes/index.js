@@ -11,6 +11,7 @@ import notificationRoutes from './notificationRoutes.js';
 import placementRoutes from './placementRoutes.js';
 import resumeRoutes from './resumeRoutes.js';
 import analyticsRoutes from './analyticsRoutes.js';
+import adminRoutes from './adminRoutes.js';
 
 const router = Router();
 
@@ -27,5 +28,6 @@ router.use('/notifications', notificationRoutes);
 router.use('/placements', placementRoutes);
 router.use('/resumes', resumeRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;

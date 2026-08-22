@@ -133,6 +133,20 @@ High-Fidelity PDF Engine (Vectorized ATS-Compliant PDF Export)
 | `GET` | `/api/analytics/project/:projectId` | Project Member | Task status distribution, member contribution, and activity audit stream |
 | `GET` | `/api/analytics/placement` | Authenticated | Placement funnel stage conversions, rejection rates, and DSA topic mastery |
 
+### Level 11 — Administrative Layer & Moderation Panel
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/admin/stats` | Admin Only | Global platform statistics across users, academics, and projects |
+| `GET` | `/api/admin/users` | Admin Only | Paginated user directory with search, role filters, and status filters |
+| `PATCH` | `/api/admin/users/:id` | Admin Only | Suspend/reactivate account and update administrative role/department |
+| `GET` | `/api/admin/courses` | Admin Only | Paginated course moderation table with status filters |
+| `PATCH` | `/api/admin/courses/:id` | Admin Only | Update course status (published/draft/archived) or details |
+| `DELETE` | `/api/admin/courses/:id` | Admin Only | Delete inappropriate course and associated assignments/submissions |
+| `GET` | `/api/admin/projects` | Admin Only | Paginated project moderation table with status filters |
+| `PATCH` | `/api/admin/projects/:id` | Admin Only | Moderate project status (active/completed/archived) |
+| `DELETE` | `/api/admin/projects/:id` | Admin Only | Delete inappropriate project and associated tasks |
+| `GET` | `/api/admin/reports` | Admin Only | Cross-platform activity audit stream and user registration timeline |
+
 ---
 
 ## ⚡ Quickstart Guide
@@ -169,7 +183,7 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests across monorepo (133 tests total: 97 backend + 36 frontend)
+# Run all tests across monorepo (149 tests total: 108 backend + 41 frontend)
 npm run test
 
 # Run backend integration tests only
