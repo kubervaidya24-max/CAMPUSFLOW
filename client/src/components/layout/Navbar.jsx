@@ -9,6 +9,7 @@ import {
   BookOpen,
   FileText,
   FolderGit2,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationBell } from '../notifications/NotificationBell';
@@ -38,7 +39,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 7
+                Level 8
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
@@ -72,6 +73,14 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
               >
                 <FolderGit2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Projects</span>
+              </Link>
+
+              <Link
+                to="/placements"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+                <span>Placements</span>
               </Link>
             </div>
           )}

@@ -8,6 +8,7 @@ import submissionRoutes from './submissionRoutes.js';
 import projectRoutes from './projectRoutes.js';
 import taskRoutes from './taskRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
+import placementRoutes from './placementRoutes.js';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/submissions', submissionRoutes);
 router.use('/projects', projectRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/placements', placementRoutes);
 
 export default router;
