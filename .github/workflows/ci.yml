@@ -1,26 +1,25 @@
-name: CampusFlow CI
+name: CampusFlow CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, develop, 'level-*']
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  # 1. Code Quality & Linting
+  lint:
+    name: Lint & Code Style
     runs-on: ubuntu-latest
-
-    services:
-      mongodb:
-        image: mongo:7.0
-        ports:
-          - 27017:27017
-
     steps:
-      - name: Checkout Code
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -29,16 +28,70 @@ jobs:
       - name: Install Monorepo Dependencies
         run: npm ci
 
-      - name: Run Backend Tests
+      - name: Run ESLint across All Workspaces
+        run: npm run lint
+
+  # 2. Backend Integration, Unit, E2E & Security Tests
+  test-server:
+    name: Backend Test Suites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Run Server Tests (Unit, Integration, E2E, Security)
         run: npm run test:server
         env:
-          PORT: 5000
           NODE_ENV: test
-          MONGODB_URI: mongodb://127.0.0.1:27017/campusflow_test
-          CORS_ORIGIN: http://localhost:5173
+          JWT_SECRET: ci_test_jwt_secret_key_32_characters_long_min
+          JWT_REFRESH_SECRET: ci_test_jwt_refresh_secret_key_32_characters
+          COOKIE_SECRET: ci_test_cookie_secret_key
 
-      - name: Run Frontend Tests
+  # 3. Frontend Component & Smoke Tests
+  test-client:
+    name: Frontend Test Suites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Run Client Component Tests
         run: npm run test:client
 
-      - name: Build Frontend
+  # 4. Production Client Build Validation
+  build-client:
+    name: Client Production Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Build Optimized Production Bundle
         run: npm run build

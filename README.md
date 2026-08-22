@@ -205,7 +205,49 @@ Comprehensive performance audit and optimization report documented in [docs/perf
 
 ---
 
-## 🧪 Testing & Quality Assurance (Level 14)
+## 🚀 Productionization, Docker & CI/CD Pipeline (Level 15)
+
+Complete production deployment guide and operations manual documented in [docs/deployment.md](file:///e:/CAMPUSFLOW/docs/deployment.md).
+
+### CI/CD & Deployment Pipeline:
+```text
+Developer
+    ↓
+Git Push
+    ↓
+GitHub
+    ↓
+CI (GitHub Actions)
+    ├── Lint (ESLint 0 errors)
+    ├── Test Server (158 Tests)
+    ├── Test Client (41 Tests)
+    └── Build (Vite 32kB entry chunk)
+    ↓
+Deployment (Docker / Cloud VM / K8s)
+    ↓
+Frontend (Nginx Alpine SPA Server)
+    ↓ (Reverse Proxy /api & /socket.io)
+Backend (Node.js Express + Socket.IO Server)
+    ↓
+MongoDB (MongoDB Replica Set / Atlas)
+```
+
+### Production Single-Command Launch (Docker Compose):
+```bash
+# 1. Clone the repository
+git clone https://github.com/kubervaidya24-max/CAMPUSFLOW.git
+cd CAMPUSFLOW
+
+# 2. Launch full-stack container cluster
+docker compose up -d --build
+```
+- **Web App**: http://localhost
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/api/health
+
+---
+
+## 🧪 Testing & Quality Assurance (Level 15)
 
 Comprehensive testing architecture documented in [docs/testing.md](file:///e:/CAMPUSFLOW/docs/testing.md).
 

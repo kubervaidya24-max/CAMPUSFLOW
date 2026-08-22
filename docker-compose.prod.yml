@@ -1,0 +1,43 @@
+# ==============================================================================
+# CampusFlow — Production Container Orchestration
+# ==============================================================================
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./server/.env
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - campusflow-prod-net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    depends_on:
+      - server
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    networks:
+      - campusflow-prod-net
+
+networks:
+  campusflow-prod-net:
+    driver: bridge
