@@ -8,6 +8,8 @@ import { placementService } from '../services/placementService';
 
 vi.mock('../services/placementService', () => ({
   placementService: {
+    getMustDoSheet: vi.fn(),
+    updateQuestionProgress: vi.fn(),
     getDSAAnalytics: vi.fn(),
     getDSAProblems: vi.fn(),
     getJobPipeline: vi.fn(),
@@ -29,23 +31,21 @@ const mockUser = {
 
 const mockDSAAnalytics = {
   summary: {
-    totalProblems: 10,
-    solvedCount: 7,
+    totalLogged: 10,
+    totalSolved: 7,
     completionPercentage: 70,
     currentStreak: 4,
-    longestStreak: 5,
+    totalTimeSpentMinutes: 240,
   },
-  byDifficulty: {
+  difficulty: {
     Easy: { total: 4, solved: 4, percentage: 100 },
     Medium: { total: 4, solved: 2, percentage: 50 },
     Hard: { total: 2, solved: 1, percentage: 50 },
   },
-  byTopic: [
+  topicMastery: [
     { topic: 'Arrays', total: 4, solved: 3, percentage: 75 },
     { topic: 'Dynamic Programming', total: 3, solved: 2, percentage: 67 },
   ],
-  byPlatform: [{ _id: 'LeetCode', count: 8, solved: 6 }],
-  recentSolved: [],
 };
 
 const mockDSAProblems = [
@@ -70,7 +70,7 @@ const mockDSAProblems = [
 ];
 
 const mockJobPipeline = {
-  pipeline: {
+  stages: {
     APPLIED: [{ _id: 'job001', company: 'Google', role: 'SWE', status: 'APPLIED' }],
     OA: [{ _id: 'job002', company: 'Amazon', role: 'SDE-1', status: 'OA' }],
     TECHNICAL: [],
@@ -78,12 +78,37 @@ const mockJobPipeline = {
     OFFER: [{ _id: 'job003', company: 'Stripe', role: 'Backend Engineer', status: 'OFFER' }],
     REJECTED: [],
   },
-  summary: {
+  metrics: {
     total: 3,
     active: 2,
     offers: 1,
     rejected: 0,
-    interviews: 0,
+  },
+};
+
+const mockMustDoSheet = {
+  isPublished: true,
+  sheet: {
+    _id: 's001',
+    title: 'Must-to-Do DSA Core Sheet',
+    totalQuestions: 2,
+  },
+  questions: [
+    {
+      _id: 'q001',
+      title: 'Two Sum',
+      topic: 'Arrays',
+      difficulty: 'Easy',
+      platform: 'LeetCode',
+      problemUrl: 'https://leetcode.com/problems/two-sum/',
+      userStatus: 'SOLVED',
+    },
+  ],
+  stats: {
+    totalQuestions: 1,
+    solvedCount: 1,
+    attemptedCount: 0,
+    completionPercentage: 100,
   },
 };
 
@@ -116,28 +141,37 @@ describe('Placement Preparation & Job Pipeline Module (Level 8)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    placementService.getMustDoSheet.mockResolvedValue({
+      data: { data: mockMustDoSheet },
+    });
+
     placementService.getDSAAnalytics.mockResolvedValue({
-      data: mockDSAAnalytics,
+      data: { data: mockDSAAnalytics },
     });
 
     placementService.getDSAProblems.mockResolvedValue({
-      data: { problems: mockDSAProblems, pagination: { total: 2 } },
+      data: { data: { problems: mockDSAProblems, pagination: { total: 2 } } },
     });
 
     placementService.getJobPipeline.mockResolvedValue({
-      data: mockJobPipeline,
+      data: { data: mockJobPipeline },
     });
   });
 
-  it('renders PlacementPage with DSA Practice hub, streak counter, and problem list', async () => {
+  it('renders PlacementPage with Must-to-Do Sheet, DSA Practice tab, and Application Pipeline tab', async () => {
     renderWithProviders(<PlacementPage />);
 
     expect(screen.getByText('Placement & Career Engine')).toBeInTheDocument();
-    expect(screen.getByText('DSA Practice')).toBeInTheDocument();
+    expect(screen.getByText(/⭐ Must-to-Do DSA Sheet/i)).toBeInTheDocument();
+    expect(screen.getByText('Personal DSA Problems')).toBeInTheDocument();
     expect(screen.getByText('Application Pipeline')).toBeInTheDocument();
 
+    // Click Personal DSA Problems tab
+    const dsaTab = screen.getByRole('button', { name: /Personal DSA Problems/i });
+    fireEvent.click(dsaTab);
+
     // Check streak metric
-    expect(screen.getByText('Daily Streak')).toBeInTheDocument();
+    expect(await screen.findByText('Daily Streak')).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByTestId('daily-streak-count')).toHaveTextContent('4');
     });
@@ -145,7 +179,7 @@ describe('Placement Preparation & Job Pipeline Module (Level 8)', () => {
     // Check problem list items
     expect(await screen.findByText('Two Sum')).toBeInTheDocument();
     expect(screen.getByText('Coin Change')).toBeInTheDocument();
-    expect(screen.getByText('Record Problem')).toBeInTheDocument();
+    expect(screen.getByText('Log Problem')).toBeInTheDocument();
   });
 
   it('switches to Application Pipeline tab and renders stage columns and job cards', async () => {
@@ -155,7 +189,7 @@ describe('Placement Preparation & Job Pipeline Module (Level 8)', () => {
     const pipelineTab = screen.getByRole('button', { name: /Application Pipeline/i });
     fireEvent.click(pipelineTab);
 
-    expect(await screen.findByText('Visual Application Pipeline')).toBeInTheDocument();
+    expect(await screen.findByText('Active Recruitment Pipeline')).toBeInTheDocument();
     expect(screen.getByText('Track Application')).toBeInTheDocument();
 
     // Verify stage columns
@@ -170,18 +204,21 @@ describe('Placement Preparation & Job Pipeline Module (Level 8)', () => {
     expect(screen.getByText('Stripe')).toBeInTheDocument();
   });
 
-  it('opens Record Problem modal on button click and allows form dismissal', async () => {
+  it('opens Log Problem modal on button click and allows form dismissal', async () => {
     renderWithProviders(<PlacementPage />);
 
-    const recordBtn = screen.getByRole('button', { name: /Record Problem/i });
-    fireEvent.click(recordBtn);
+    const dsaTab = screen.getByRole('button', { name: /Personal DSA Problems/i });
+    fireEvent.click(dsaTab);
 
-    expect(screen.getByText('Record DSA Problem')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Trapping Rain Water/i)).toBeInTheDocument();
+    const logBtn = await screen.findByRole('button', { name: /Log Problem/i });
+    fireEvent.click(logBtn);
+
+    expect(screen.getByText('Log Personal Problem')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Longest Substring Without Repeating Characters/i)).toBeInTheDocument();
 
     const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelBtn);
 
-    expect(screen.queryByText('Record DSA Problem')).not.toBeInTheDocument();
+    expect(screen.queryByText('Log Personal Problem')).not.toBeInTheDocument();
   });
 });

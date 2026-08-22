@@ -61,7 +61,7 @@ export const adminService = {
   /**
    * Moderate project
    * @param {string} projectId
-   * @param {object} data { status, title, description }
+   * @param {object} data { status, isArchived }
    */
   updateProject: async (projectId, data) => {
     return await apiClient.patch(`/admin/projects/${projectId}`, data);
@@ -76,10 +76,70 @@ export const adminService = {
   },
 
   /**
-   * Get system reports and activity audit stream
+   * Get system reports and recent activity metrics
    */
   getReports: async () => {
     return await apiClient.get('/admin/reports');
+  },
+
+  // ==========================
+  // MUST-TO-DO DSA SHEET APIS
+  // ==========================
+
+  /**
+   * Get Admin Must-to-Do DSA Sheet overview
+   */
+  getAdminDSASheet: async () => {
+    return await apiClient.get('/admin/dsa-sheet');
+  },
+
+  /**
+   * Update Must-to-Do Sheet metadata
+   * @param {object} data { title, description }
+   */
+  updateDSASheetMetadata: async (data) => {
+    return await apiClient.patch('/admin/dsa-sheet', data);
+  },
+
+  /**
+   * Toggle publish / draft status of the sheet
+   * @param {boolean} isPublished
+   */
+  togglePublishDSASheet: async (isPublished) => {
+    return await apiClient.patch('/admin/dsa-sheet/publish', { isPublished });
+  },
+
+  /**
+   * Add a question to the sheet
+   * @param {object} data
+   */
+  addDSASheetQuestion: async (data) => {
+    return await apiClient.post('/admin/dsa-sheet/questions', data);
+  },
+
+  /**
+   * Update question in the sheet
+   * @param {string} questionId
+   * @param {object} data
+   */
+  updateDSASheetQuestion: async (questionId, data) => {
+    return await apiClient.patch(`/admin/dsa-sheet/questions/${questionId}`, data);
+  },
+
+  /**
+   * Remove question from the sheet
+   * @param {string} questionId
+   */
+  deleteDSASheetQuestion: async (questionId) => {
+    return await apiClient.delete(`/admin/dsa-sheet/questions/${questionId}`);
+  },
+
+  /**
+   * Reorder questions
+   * @param {string[]} questionIds
+   */
+  reorderDSASheetQuestions: async (questionIds) => {
+    return await apiClient.patch('/admin/dsa-sheet/questions/reorder', { questionIds });
   },
 };
 
