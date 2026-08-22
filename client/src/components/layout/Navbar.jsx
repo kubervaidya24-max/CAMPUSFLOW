@@ -1,7 +1,16 @@
 import { Link } from 'react-router-dom';
-import { Layers, Activity, Sparkles } from 'lucide-react';
+import { Layers, Activity, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const roleColors = {
+    student: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    faculty: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+    admin: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  };
+
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -18,16 +27,17 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 0
+                Level 1
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
           </div>
         </Link>
 
-        {/* Status indicator & Navigation Items */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
+        {/* Right side items */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* API Health Pill */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
             <span className="relative flex h-2 w-2">
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
@@ -40,7 +50,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 }`}
               />
             </span>
-            <span className="text-slate-300 font-medium hidden sm:inline">
+            <span className="text-slate-300 font-medium">
               API: {isBackendOnline ? 'Operational' : 'Connecting...'}
             </span>
             {backendLatency !== null && (
@@ -51,24 +61,67 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
           </div>
 
           <a
-            href="#architecture"
-            className="text-xs font-medium text-slate-400 hover:text-white transition-colors hidden md:flex items-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            Architecture
-          </a>
-
-          <a
             href="/api/health"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 text-xs font-medium transition-all"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 text-xs font-medium transition-all"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>Raw Health JSON</span>
+            <span>Health</span>
           </a>
+
+          {/* Auth Controls */}
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3">
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-200 transition-colors"
+              >
+                <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white">
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <span className="hidden sm:inline font-semibold">{user?.name?.split(' ')[0]}</span>
+                <span
+                  className={`text-[10px] uppercase font-bold px-2 py-0.2 rounded border ${
+                    roleColors[user?.role] || roleColors.student
+                  }`}
+                >
+                  {user?.role}
+                </span>
+              </Link>
+
+              <button
+                onClick={logout}
+                title="Sign Out"
+                className="p-2 rounded-xl bg-slate-900 hover:bg-red-500/10 hover:text-red-400 border border-slate-800 text-slate-400 transition-colors text-xs flex items-center gap-1"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Logout</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium transition-colors"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </Link>
+
+              <Link
+                to="/register"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-md shadow-indigo-600/20"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Register</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 };
+
+export default Navbar;

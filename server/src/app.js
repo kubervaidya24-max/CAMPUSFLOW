@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import { config } from './config/env.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -19,6 +20,9 @@ app.use(
     credentials: true,
   })
 );
+
+// Cookie parser middleware
+app.use(cookieParser(config.cookieSecret));
 
 // Request logging (skip in test environment)
 if (!config.isTest) {

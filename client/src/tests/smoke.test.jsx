@@ -6,12 +6,23 @@ import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { LandingPage } from '../pages/LandingPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { AuthProvider } from '../context/AuthContext';
 import { healthService } from '../services/healthService';
 
-// Mock healthService
+// Mock healthService & authService
 vi.mock('../services/healthService', () => ({
   healthService: {
     checkHealth: vi.fn(),
+  },
+}));
+
+vi.mock('../services/authService', () => ({
+  authService: {
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    refreshToken: vi.fn().mockRejectedValue(new Error('No active session')),
+    getCurrentUser: vi.fn().mockRejectedValue(new Error('Unauthenticated')),
   },
 }));
 
@@ -27,7 +38,9 @@ const renderWithProviders = (ui) => {
 
   return render(
     <QueryClientProvider client={testQueryClient}>
-      <BrowserRouter>{ui}</BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>{ui}</AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };
@@ -53,7 +66,8 @@ describe('Client UI Smoke Tests', () => {
   it('renders Navbar with CampusFlow brand name', () => {
     renderWithProviders(<Navbar isBackendOnline={true} backendLatency={12} />);
     expect(screen.getByText('CampusFlow')).toBeInTheDocument();
-    expect(screen.getByText('Level 0')).toBeInTheDocument();
+    expect(screen.getByText('Level 1')).toBeInTheDocument();
+    expect(screen.getByText('Sign In')).toBeInTheDocument();
   });
 
   it('renders Footer with copyright and architecture stack', () => {
