@@ -4,6 +4,7 @@ import { Course } from '../models/Course.js';
 import { Submission } from '../models/Submission.js';
 import { ApiError } from '../utils/apiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
+import { notificationService } from '../services/notificationService.js';
 
 /**
  * Create a new assignment (Faculty owner / Admin only)
@@ -38,6 +39,20 @@ export const createAssignment = async (req, res, next) => {
       attachments: attachments || [],
       status: status || 'published',
     });
+
+    // Notify enrolled course students
+    if (course.students && course.students.length > 0) {
+      await notificationService.createBulkNotifications(course.students, {
+        type: 'assignment_created',
+        title: 'New Assignment Posted',
+        message: `New assignment "${title}" posted for ${course.code} - ${course.title}`,
+        relatedResource: {
+          kind: 'assignment',
+          id: assignment._id,
+          url: `/assignments/${assignment._id}`,
+        },
+      });
+    }
 
     const populatedAssignment = await Assignment.findById(assignment._id)
       .populate('course', 'title code department semester')

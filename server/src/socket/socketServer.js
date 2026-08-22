@@ -65,6 +65,9 @@ export const initSocketServer = (httpServer) => {
 
   // Connection Handler
   io.on('connection', (socket) => {
+    // Automatically join the user's private notification room
+    socket.join(`user:${socket.userId}`);
+
     // 1. Join Project Room with strict authorization check
     socket.on('join_project', async (data, callback) => {
       try {

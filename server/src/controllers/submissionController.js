@@ -4,6 +4,7 @@ import { Course } from '../models/Course.js';
 import { Submission } from '../models/Submission.js';
 import { ApiError } from '../utils/apiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
+import { notificationService } from '../services/notificationService.js';
 
 /**
  * Submit or update an assignment submission (Student only)
@@ -189,6 +190,19 @@ export const gradeSubmission = async (req, res, next) => {
     const populated = await Submission.findById(submission._id)
       .populate('student', 'name email profile.collegeId')
       .populate('assignment', 'title totalPoints dueDate');
+
+    // Notify student about feedback and score
+    await notificationService.createNotification({
+      recipient: submission.student,
+      type: 'faculty_feedback',
+      title: 'Assignment Graded',
+      message: `Your submission for "${submission.assignment.title}" has been graded: ${score}/${submission.assignment.totalPoints}`,
+      relatedResource: {
+        kind: 'assignment',
+        id: submission.assignment._id,
+        url: `/assignments/${submission.assignment._id}`,
+      },
+    });
 
     return sendSuccess(res, 'Submission evaluated successfully', { submission: populated });
   } catch (error) {

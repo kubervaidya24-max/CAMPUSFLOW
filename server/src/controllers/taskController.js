@@ -5,6 +5,7 @@ import { ProjectActivity } from '../models/ProjectActivity.js';
 import { ApiError } from '../utils/apiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
 import { logActivity } from './projectController.js';
+import { notificationService } from '../services/notificationService.js';
 
 /**
  * Create a new task in a project (Project members only)
@@ -59,6 +60,21 @@ export const createTask = async (req, res, next) => {
       taskTitle: title,
       status: task.status,
     });
+
+    // Notify assignee if not creator
+    if (validAssignee && !req.user._id.equals(validAssignee)) {
+      await notificationService.createNotification({
+        recipient: validAssignee,
+        type: 'task_assignment',
+        title: 'New Task Assignment',
+        message: `${req.user.name} assigned you to "${title}" in "${project.title}"`,
+        relatedResource: {
+          kind: 'task',
+          id: task._id,
+          url: `/projects/${project._id}`,
+        },
+      });
+    }
 
     const populatedTask = await Task.findById(task._id)
       .populate('assignee', 'name email profile.avatar')

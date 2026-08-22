@@ -5,6 +5,7 @@ import { ProjectActivity } from '../models/ProjectActivity.js';
 import { User } from '../models/User.js';
 import { ApiError } from '../utils/apiError.js';
 import { sendSuccess } from '../utils/apiResponse.js';
+import { notificationService } from '../services/notificationService.js';
 
 /**
  * Helper to log project activities
@@ -293,6 +294,19 @@ export const inviteMember = async (req, res, next) => {
       targetEmail: targetUser.email,
       targetName: targetUser.name,
       role: role || 'member',
+    });
+
+    // Centralized notification delivery
+    await notificationService.createNotification({
+      recipient: targetUser._id,
+      type: 'project_invitation',
+      title: 'Project Invitation',
+      message: `${req.user.name} invited you to join project "${project.title}"`,
+      relatedResource: {
+        kind: 'project',
+        id: project._id,
+        url: '/projects',
+      },
     });
 
     return sendSuccess(res, `Invitation sent to ${targetUser.name}`, { project });

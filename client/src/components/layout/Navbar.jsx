@@ -11,6 +11,7 @@ import {
   FolderGit2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationBell } from '../notifications/NotificationBell';
 
 export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -37,7 +38,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 6
+                Level 7
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
@@ -111,7 +112,10 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
 
           {/* Auth Controls */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              {/* Notification Bell Dropdown */}
+              <NotificationBell />
+
               <Link
                 to="/dashboard"
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition-colors"
