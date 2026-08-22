@@ -180,16 +180,18 @@ npm run dev
 
 ---
 
-## 🧪 Testing & Quality
+## 🧪 Testing & Quality Assurance (Level 12)
+
+Comprehensive testing architecture documented in [docs/testing.md](file:///e:/CAMPUSFLOW/docs/testing.md).
 
 ```bash
-# Run all tests across monorepo (149 tests total: 108 backend + 41 frontend)
+# Run all tests across monorepo (182 tests total: 141 backend + 41 frontend across 27 test suites)
 npm run test
 
-# Run backend integration tests only
+# Run backend integration, unit, and E2E tests (15 suites, 141 tests)
 npm run test:server
 
-# Run frontend component tests only
+# Run frontend component tests (12 suites, 41 tests)
 npm run test:client
 
 # Run linting across all workspaces (0 errors, 0 warnings)
