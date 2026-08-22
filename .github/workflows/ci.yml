@@ -1,0 +1,44 @@
+name: CampusFlow CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Run Backend Tests
+        run: npm run test:server
+        env:
+          PORT: 5000
+          NODE_ENV: test
+          MONGODB_URI: mongodb://127.0.0.1:27017/campusflow_test
+          CORS_ORIGIN: http://localhost:5173
+
+      - name: Run Frontend Tests
+        run: npm run test:client
+
+      - name: Build Frontend
+        run: npm run build
