@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.8.0] — 2026-08-23 (Level 16 — Admin-Managed Must-to-Do DSA Sheet)
+
+### Added
+- **Global Curated Must-to-Do DSA Sheet**:
+  - `DSASheet` Model: Singleton shared curriculum (`slug: 'must-to-do'`) created, curated, reordered, and published exclusively by authorized Admin users.
+  - `DSASheetProgress` Model: Isolated per-user progress records (`NOT_STARTED`, `ATTEMPTED`, `SOLVED`, `attemptedAt`, `solvedAt`) with unique compound index `{ user: 1, sheet: 1, questionId: 1 }`.
+  - **Cascade Cleanup**: Admin question deletion automatically purges all associated user progress records.
+  - **Sparse Persistence**: Questions default to `NOT_STARTED` with 0 database records stored; transitioning to `NOT_STARTED` automatically deletes the progress document.
+  - **Authenticated User Endpoints**: `GET /api/placements/sheet` and `PATCH /api/placements/sheet/progress/:questionId`.
+  - **Admin Management Endpoints**: `GET /api/admin/dsa-sheet`, `PATCH /api/admin/dsa-sheet`, `PATCH /api/admin/dsa-sheet/publish`, `POST /api/admin/dsa-sheet/questions`, `PATCH /api/admin/dsa-sheet/questions/:id`, `DELETE /api/admin/dsa-sheet/questions/:id`, `PATCH /api/admin/dsa-sheet/questions/reorder`.
+  - **Student Placement Hub Tab**: `⭐ Must-to-Do DSA Sheet` with live progress scorecard, difficulty/topic breakdown, multi-attribute filter bar, and safe `[Solve ↗]` external problem launcher.
+  - **Admin Command Center Tab**: `⭐ DSA Sheet` management tab with live publish/unpublish toggle, add/edit question modals, and question table.
+  - **Automated Tests**: Comprehensive backend test suite (`server/tests/dsaSheet.test.js`) certifying RBAC and multi-user progress isolation, plus frontend integration tests (`client/src/tests/dsaSheet.test.jsx`).
+
+---
+
 ## [1.7.0] — 2026-08-23 (Final Release)
 
 ### Added

@@ -2,7 +2,28 @@ import apiClient from './apiClient';
 
 export const placementService = {
   // ==========================
-  // DSA PROBLEM APIS
+  // MUST-TO-DO DSA SHEET APIS
+  // ==========================
+
+  /**
+   * Get Must-to-Do DSA Sheet with user progress
+   * @param {Object} params - { topic, difficulty, platform, status, search }
+   */
+  getMustDoSheet: async (params = {}) => {
+    return await apiClient.get('/placements/sheet', { params });
+  },
+
+  /**
+   * Update authenticated user's progress for a specific question
+   * @param {string} questionId
+   * @param {Object} data - { status: 'NOT_STARTED' | 'ATTEMPTED' | 'SOLVED', notes?: string }
+   */
+  updateQuestionProgress: async (questionId, data) => {
+    return await apiClient.patch(`/placements/sheet/progress/${questionId}`, data);
+  },
+
+  // ==========================
+  // PERSONAL DSA PROBLEM APIS
   // ==========================
 
   /**
@@ -58,15 +79,15 @@ export const placementService = {
   // ==========================
 
   /**
-   * Get job applications list with filters
-   * @param {Object} params - { status, search }
+   * Get job applications with search/filter
+   * @param {Object} params - { page, limit, status, jobType, search }
    */
   getJobApplications: async (params = {}) => {
     return await apiClient.get('/placements/jobs', { params });
   },
 
   /**
-   * Get grouped job application visual pipeline
+   * Get 5-stage job application pipeline grouping
    */
   getJobPipeline: async () => {
     return await apiClient.get('/placements/jobs/pipeline');
@@ -89,7 +110,7 @@ export const placementService = {
   },
 
   /**
-   * Update job application stage / details
+   * Update job application or move pipeline stage
    * @param {string} id
    * @param {Object} data
    */

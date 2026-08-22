@@ -205,5 +205,37 @@ graph TD
 3. **IDOR & Multi-Tenant Isolation**: Private resources (resumes, placements, submissions) are bound explicitly to `req.user._id` in database operations.
 4. **Data Minimization**: User schema `toJSON` transform automatically strips sensitive attributes (`password`, `refreshToken`) on JSON serialization.
 
+## 13. Level 16: Admin-Managed Must-to-Do DSA Sheet Architecture
 
+### Architecture Overview:
+```mermaid
+graph TD
+    Admin["Authorized Admin User"] -->|Creates / Curates / Reorders| DSASheet["DSASheet (Global Singleton: slug='must-to-do')"]
+    Admin -->|Toggle Publish| PubState["isPublished: true | false"]
+    
+    DSASheet --> Questions["Global Questions Array\n(title, problemUrl, topic, difficulty, platform, order)"]
+    
+    PubState -->|When Published| AuthUsers["Authenticated CampusFlow Users\n(Students, Faculty, Admin)"]
+    
+    AuthUsers --> UserA["Student A"]
+    AuthUsers --> UserB["Student B"]
+    AuthUsers --> UserC["Student C"]
+    
+    UserA -->|Updates Progress| ProgA["DSASheetProgress (User A)\n- Two Sum: SOLVED\n- attemptedAt, solvedAt"]
+    UserB -->|Updates Progress| ProgB["DSASheetProgress (User B)\n- Two Sum: ATTEMPTED\n- attemptedAt"]
+    UserC -->|No Record (Default)| ProgC["Sparse Default: NOT_STARTED\n(0 DB records stored)"]
+```
 
+### Core Architecture Principles:
+1. **Singleton Global Resource**:
+   - The Must-to-Do DSA Sheet is a single, authoritative global resource managed exclusively by Admin users.
+   - It is never duplicated per student.
+2. **Strict Multi-User Progress Isolation**:
+   - Shared question subdocuments contain zero user state (`isSolved`, `userStatus`, `solvedAt`).
+   - Progress is maintained in `DSASheetProgress` with a unique compound index `{ user: 1, sheet: 1, questionId: 1 }`.
+   - Modifying Student A's status has zero effect on Student B or the shared question document.
+3. **Sparse Persistence Model**:
+   - Questions default to `NOT_STARTED` without creating database records.
+   - Only active attempts (`ATTEMPTED`) and completions (`SOLVED`) are persisted. Transitioning back to `NOT_STARTED` deletes the progress record to preserve database efficiency.
+4. **Cascade Cleanup on Admin Question Deletion**:
+   - When an administrator deletes a question from the sheet, `DSASheetProgress.deleteMany({ sheet: sheetId, questionId })` instantly removes all associated user progress records.
