@@ -66,7 +66,7 @@ describe('Client UI Smoke Tests', () => {
   it('renders Navbar with CampusFlow brand name', () => {
     renderWithProviders(<Navbar isBackendOnline={true} backendLatency={12} />);
     expect(screen.getByText('CampusFlow')).toBeInTheDocument();
-    expect(screen.getByText('Level 15')).toBeInTheDocument();
+    expect(screen.getByText('v1.7.0')).toBeInTheDocument();
     expect(screen.getByText('Sign In')).toBeInTheDocument();
   });
 

@@ -1,253 +1,130 @@
-# CampusFlow 🎓
+# CampusFlow 🎓 (v1.7.0 — Final Release)
 
-> **Unified Platform for College Students** — Academics, Deliverables, Team Projects & Kanban, Real-Time Socket.IO Chat & Notifications, Placement Prep & Career Growth, Dynamic Resume Builder & PDF Export.
+> **Enterprise-Grade Unified Academic & Student Career Platform** — Real-Time Collaboration, Academic Courses & Assignments, Kanban Workspaces, Live Socket.IO Chat, Dynamic Resume Builder & PDF Export, Career Placement Pipeline & DSA Tracking, Moderation Admin Panel, and Automated CI/CD.
 
 [![CampusFlow CI](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
+[![Version: v1.7.0](https://img.shields.io/badge/Version-v1.7.0-indigo.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW/releases)
+[![Tests: 199/199 Passed](https://img.shields.io/badge/Tests-199%2F199%20Passed%20(100%25)-emerald.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node Version](https://img.shields.io/badge/Node.js-v20%2B-emerald.svg)](https://nodejs.org/)
 [![React Version](https://img.shields.io/badge/React-18%2B-blue.svg)](https://react.dev/)
-[![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Refresh%20Rotation-emerald.svg)](https://jwt.io/)
-[![Courses](https://img.shields.io/badge/Courses-Syllabus%20%2B%20Enrollment-blueviolet.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
-[![Assignments](https://img.shields.io/badge/Assignments-Submissions%20%26%20Grading-sky.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
-[![Projects](https://img.shields.io/badge/Projects-Kanban%20%26%20Collab-emerald.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
-[![Chat](https://img.shields.io/badge/Chat-Socket.IO%20Realtime-orange.svg)](https://socket.io/)
-[![Notifications](https://img.shields.io/badge/Notifications-Centralized%20Realtime-rose.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
-[![Placements](https://img.shields.io/badge/Placements-DSA%20%26%20Job%20Pipeline-amber.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
-[![Resume Builder](https://img.shields.io/badge/Resume%20Builder-ATS%20%26%20PDF%20Export-purple.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
+[![Docker: Ready](https://img.shields.io/badge/Docker-Compose%20Ready-sky.svg)](https://www.docker.com/)
 
 ---
 
-## 📌 Project Overview
+## 📌 Executive Summary
 
-**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for academic courses, assignment submissions, collaborative project workspaces with interactive Kanban boards, real-time Socket.IO chat, centralized multi-channel notifications, placement preparation & dynamic algorithmic analytics, and an ATS-ready dynamic resume builder with high-fidelity PDF export.
+**CampusFlow** is a modern, unified full-stack MERN platform built to streamline the academic and career lifecycle for universities and colleges. It replaces fragmented third-party tools with a single, high-performance, secure, and reactive application.
 
----
-
-## 🏗️ Architecture & Monorepo Structure
-
-```
-campusflow/
-├── client/                     # Frontend (React 18, Vite, Tailwind CSS, TanStack Query, Axios, Socket.IO Client)
-│   ├── public/                 # Static assets (Favicon, SVG logos)
-│   ├── src/
-│   │   ├── components/         # Reusable UI (Navbar, Footer, NotificationBell, CourseCard, AssignmentCard, ProjectCard, KanbanBoard, ProjectChat, ModernTemplate, DualColumnTemplate, ProtectedRoute)
-│   │   ├── context/            # Global AuthContext & session restore provider
-│   │   ├── hooks/              # Custom hooks (useProjectChat, useNotifications)
-│   │   ├── pages/              # Route pages (Landing, Login, Register, Dashboard, Profile, EditProfile, Courses, CourseDetails, CourseEditor, Assignments, AssignmentDetails, AssignmentEditor, Projects, ProjectDetails, ProjectEditor, PlacementPage, ResumeBuilderPage, NotFound)
-│   │   ├── services/           # API & Socket clients (authService, userService, courseService, assignmentService, projectService, socketService, notificationService, placementService, resumeService)
-│   │   ├── tests/              # Frontend smoke, auth, guard, profile, course, assignment, project, chat, notification, placement, and resume tests (32 tests)
-│   │   ├── App.jsx             # Root routing & AuthProvider wrapper
-│   │   ├── index.css           # Tailwind base styles & glassmorphism tokens
-│   │   └── main.jsx            # React 18 DOM mount
-│   ├── package.json
-│   └── vite.config.js
-│
-├── server/                     # Backend (Node.js, Express, Socket.IO, Mongoose, Zod, JWT)
-│   ├── src/
-│   │   ├── config/             # Environment variables (env.js) & MongoDB connection (db.js)
-│   │   ├── controllers/        # Request handlers (auth, user, course, assignment, submission, project, task, message, notification, placement, resume, health)
-│   │   ├── middleware/         # Error handling, 404, JWT authentication, role authorization, validation
-│   │   ├── models/             # Mongoose schemas (User, Course, Assignment, Submission, Project, Task, ProjectActivity, Message, Notification, DSAProblem, JobApplication, Resume)
-│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/assignments, /api/submissions, /api/projects, /api/tasks, /api/notifications, /api/placements, /api/resumes, /api/health)
-│   │   ├── services/           # Centralized business services (notificationService.js)
-│   │   ├── socket/             # Socket.IO server initialization, handshake auth, room guards (socketServer.js)
-│   │   ├── utils/              # Standardized API response, ApiError class, cookie helpers
-│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators, assignmentValidators, projectValidators, placementValidators, resumeValidators)
-│   │   ├── app.js              # Express app setup & middleware pipeline (Helmet, CORS, Morgan, CookieParser)
-│   │   └── server.js           # HTTP + Socket.IO server bootstrap & graceful shutdown
-│   ├── tests/                  # Backend Supertest & socket.io-client integration test suite (94 tests)
-│   └── package.json
-│
-├── docs/                       # Architecture & Setup guides
-│   ├── architecture.md
-│   └── setup.md
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # Automated testing and build CI pipeline
-│
-├── docker-compose.yml          # Local MongoDB container definition
-├── package.json                # Root monorepo workspace configuration
-├── .env.example                # Sample environment configurations
-└── README.md
+```text
+                               ┌────────────────────────┐
+                               │   CampusFlow v1.7.0    │
+                               │ Unified Academic Hub   │
+                               └───────────┬────────────┘
+                                           │
+         ┌─────────────────────────────────┼─────────────────────────────────┐
+         │                                 │                                 │
+         ▼                                 ▼                                 ▼
+┌──────────────────┐             ┌──────────────────┐             ┌──────────────────┐
+│   Student Flow   │             │   Faculty Flow   │             │    Admin Flow    │
+├──────────────────┤             ├──────────────────┤             ├──────────────────┤
+│ • Registration   │             │ • Secure Login   │             │ • Admin Auth     │
+│ • Profile & Bio  │             │ • Faculty Studio │             │ • Platform Stats │
+│ • Course Explore │             │ • Course Creation│             │ • User Directory │
+│ • Assignments    │             │ • Assignment Mgmt│             │ • Moderation     │
+│ • Kanban & Chat  │             │ • Submissions    │             │ • Account Lock   │
+│ • Notifications  │             │ • Score & Grade  │             │ • Activity Audit │
+│ • Placement & DSA│             │ • Performance    │             │ • System Reports │
+│ • PDF Resume Gen │             │ • Announcement   │             │ • Health Monitor │
+│ • Analytics KPIs │             │ • Analytics View │             │ • System Config  │
+└──────────────────┘             └──────────────────┘             └──────────────────┘
 ```
 
 ---
 
-## 🚀 Development Progress & Roadmap
+## 🌟 Multi-Persona Feature Matrix
 
-| Level | Feature Scope | Status |
-|---|---|---|
-| **Level 0** | **Monorepo Foundation, Express Server, Vite Client, Health API & CI** | **Completed** ✅ |
-| **Level 1** | **Authentication & RBAC (JWT, HTTP-only Cookies, Token Rotation, bcrypt, Zod)** | **Completed** ✅ |
-| **Level 2** | **User Profiles & Role-Based Access Control (Student & Faculty Profiles, Whitelisting)** | **Completed** ✅ |
-| **Level 3** | **Academic & Course Management (Syllabus Builder, Enrollment Guards, Capacity Limits)** | **Completed** ✅ |
-| **Level 4** | **Assignments & Submissions (Deadline Validation, Late Flags, Faculty Grading & Feedback)** | **Completed** ✅ |
-| **Level 5** | **Project Collaboration & Kanban (Team Invitations, 3-Column Kanban Board, Activity Audit Log)** | **Completed** ✅ |
-| **Level 6** | **Real-Time Chat & Socket.IO (Handshake Auth, Room Authorization, MongoDB Message Persistence, Typing Indicators, Online Presence)** | **Completed** ✅ |
-| **Level 7** | **Centralized Notification System (NotificationService, Multi-channel Event Triggers, MongoDB Compound Indexing, Socket.IO User Rooms, Navbar Bell & Popover Panel)** | **Completed** ✅ |
-| **Level 8** | **Placement Preparation & Application Tracking (DSA Practice Tracker, Non-hardcoded Analytics Engine, Daily Streak Calculation, 6-Stage Visual Job Application Pipeline)** | **Completed** ✅ |
-| **Level 9** | **Dynamic Resume Builder & PDF Export (Profile/Project Auto-Fill, Modern & Dual-Column ATS Templates, Split-Screen Real-Time Editor, Vectorized PDF Export Engine)** | **Completed** ✅ |
-| Level 10 | Analytics, Admin Dashboard & Production Hardening | *Upcoming* |
+### 👨‍🎓 For Students
+- **Academic Hub**: Browse published courses, enroll with one click, explore syllabus modules, and view faculty office hours.
+- **Assignment Submissions**: Submit text/files before deadlines with automated validation, late flags, score history, and faculty feedback.
+- **Project Collaboration & Kanban**: Create project workspaces, invite teammates, organize tasks across a 3-column Kanban board (`TODO`, `IN_PROGRESS`, `DONE`), and track project activity logs.
+- **Real-Time Project Chat**: Persistent Socket.IO room chat with typing indicators, online member presence, and full message history.
+- **Centralized Notifications**: Real-time notifications for project invitations, task assignments, grading feedback, and course announcements.
+- **Placement & DSA Prep**: Track solved coding problems across topics (Arrays, Trees, DP, Graphs) and manage job applications across a 5-stage pipeline (`APPLIED` ➔ `OA` ➔ `TECHNICAL` ➔ `HR` ➔ `OFFER` / `REJECTED`).
+- **Dynamic Resume Builder**: Auto-fill resumes from profile and project history, customize ATS templates (Modern Single-Column & Executive Split), and export print-ready vector PDFs.
+- **Data-Driven Analytics**: Visual charts showing assignment completion rates, DSA streaks, grade trends, and application pipeline conversions.
 
----
+### 👩‍🏫 For Faculty
+- **Course Studio**: Create, edit, and publish courses with custom department, semester, credits, capacity limits, and structured syllabi.
+- **Assignment Management**: Post assignments with total points, deadlines, and attachment links.
+- **Submissions & Grading**: Review student submissions with late status badges, grade scores validated against total points, and provide structured feedback.
+- **Class Analytics**: View enrollment counts, submission turnaround times, and class performance averages.
 
-## 📄 Level 9 Resume Builder & PDF Export Architecture
-
-### 1. Resume Generation Pipeline
-```
-User (Student Profile & Projects)
-  │
-  ▼
-Profile & Project Auto-Populator (GET /api/resumes/auto-fill)
-  │
-  ▼
-Resume Builder Engine (Interactive Section Editor)
-  │
-  ▼
-Layout Template Selector ('modern' | 'dual-column')
-  │
-  ▼
-Live Interactive Renderer (Real-time Markdown & Typographic Layout)
-  │
-  ▼
-High-Fidelity PDF Engine (Vectorized ATS-Compliant PDF Export)
-```
-
-### 2. Resume REST Endpoints
-
-| Method | Endpoint | Authorization | Description |
-|---|---|---|---|
-| `GET` | `/api/resumes` | Authenticated | List all resumes owned by current user |
-| `GET` | `/api/resumes/auto-fill` | Authenticated | Generate draft resume from profile and project records |
-| `POST` | `/api/resumes` | Authenticated | Create a new structured resume |
-| `GET` | `/api/resumes/:id` | Authenticated (Owner only) | Retrieve single resume by ID |
-| `PATCH` | `/api/resumes/:id` | Authenticated (Owner only) | Update resume sections, title, or template layout |
-| `DELETE` | `/api/resumes/:id` | Authenticated (Owner only) | Delete resume |
-
-### Level 10 — Data-Driven Analytics Dashboards
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/api/analytics/student` | Authenticated | Aggregated student performance (credits, assignments %, task velocity, career funnel) |
-| `GET` | `/api/analytics/overview` | Authenticated | High-level summary metrics for authenticated student |
-| `GET` | `/api/analytics/project/:projectId` | Project Member | Task status distribution, member contribution, and activity audit stream |
-| `GET` | `/api/analytics/placement` | Authenticated | Placement funnel stage conversions, rejection rates, and DSA topic mastery |
-
-### Level 11 — Administrative Layer & Moderation Panel
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/api/admin/stats` | Admin Only | Global platform statistics across users, academics, and projects |
-| `GET` | `/api/admin/users` | Admin Only | Paginated user directory with search, role filters, and status filters |
-| `PATCH` | `/api/admin/users/:id` | Admin Only | Suspend/reactivate account and update administrative role/department |
-| `GET` | `/api/admin/courses` | Admin Only | Paginated course moderation table with status filters |
-| `PATCH` | `/api/admin/courses/:id` | Admin Only | Update course status (published/draft/archived) or details |
-| `DELETE` | `/api/admin/courses/:id` | Admin Only | Delete inappropriate course and associated assignments/submissions |
-| `GET` | `/api/admin/projects` | Admin Only | Paginated project moderation table with status filters |
-| `PATCH` | `/api/admin/projects/:id` | Admin Only | Moderate project status (active/completed/archived) |
-| `DELETE` | `/api/admin/projects/:id` | Admin Only | Delete inappropriate project and associated tasks |
-| `GET` | `/api/admin/reports` | Admin Only | Cross-platform activity audit stream and user registration timeline |
+### 🛡️ For Administrators
+- **Executive KPI Dashboard**: Real-time aggregated statistics across Users, Students, Faculty, Courses, Projects, and Assignments.
+- **User Directory Governance**: Paginated user table with role filters, keyword search, user account suspension/reactivation, and admin self-lockout guards.
+- **Content Moderation**: Moderate courses and projects, update publishing status, and remove inappropriate content.
+- **System Activity & Audit Stream**: Real-time audit logs of registration events, course updates, and system activities.
 
 ---
 
-## ⚡ Quickstart Guide
+## 🏗️ Architecture & Technology Stack
+
+| Layer | Technologies Used |
+|---|---|
+| **Frontend** | React 18, Vite 6, Tailwind CSS, TanStack Query v5, Axios, React Router v6, Lucide Icons, Socket.IO Client |
+| **Backend** | Node.js (v20+), Express.js, Socket.IO, Mongoose 8, Zod, JWT (Access + Refresh Rotation), bcryptjs, Helmet, Compression |
+| **Database** | MongoDB 7.0 (Mongoose schemas, compound indexes, text search, aggregation pipelines) |
+| **Containerization** | Docker, Multi-Stage Builds, Nginx Alpine, Docker Compose |
+| **CI/CD & DevOps** | GitHub Actions (`.github/workflows/ci.yml`), Gzip Compression, Rate Limiting, MongoSanitize |
+
+---
+
+## 🚀 Quickstart & Local Development
 
 ### Prerequisites
-- **Node.js**: `v20+` or `v22+` (Node 26+ compatible)
-- **npm**: `v10+`
-- **MongoDB**: Local MongoDB instance or Docker
+- **Node.js**: v20.x or higher
+- **npm**: v10.x or higher
+- **MongoDB**: Local MongoDB instance on `mongodb://127.0.0.1:27017` or Docker
 
 ### 1. Clone & Install Dependencies
 ```bash
 git clone https://github.com/kubervaidya24-max/CAMPUSFLOW.git
 cd CAMPUSFLOW
-npm install
+npm run install:all
 ```
 
 ### 2. Configure Environment Variables
 ```bash
+cp .env.example .env
 cp server/.env.example server/.env
 cp client/.env.example client/.env
 ```
 
-### 3. Run Both Client & Server Concurrently
+### 3. Run in Development Mode
 ```bash
 npm run dev
 ```
-
-- **Frontend Application**: [http://localhost:5173](http://localhost:5173)
-- **Backend API**: [http://localhost:5000](http://localhost:5000)
-- **Health Check Endpoint**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
-
----
-
-## 🔒 Security Hardening & Audit (Level 13)
-
-Comprehensive security audit report and threat matrix documented in [docs/security.md](file:///e:/CAMPUSFLOW/docs/security.md).
-
-- **NoSQL Injection Defense**: Recursive `sanitize` middleware stripping `$` and `.` operators.
-- **Rate Limiting Protection**: `authLimiter` (15 req/15m) on authentication routes and `apiLimiter` (1000 req/15m) globally.
-- **IDOR Tenant Isolation**: All private resources (resumes, job applications, submissions) strictly bound to `req.user._id`.
-- **Privilege Escalation Defense**: Server-side RBAC verification (`authorize`) + real-time suspended account token invalidation.
-- **Sensitive Field Stripping**: Schema serialization `toJSON` hooks stripping `password` and `refreshToken`.
-- **Payload Limit Caps**: 2MB body parser limits preventing payload exhaustion DoS.
+- **Client Application**: [http://localhost:5173](http://localhost:5173)
+- **API Server**: [http://localhost:5000](http://localhost:5000)
+- **Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
 ---
 
-## ⚡ Performance & Scalability Optimization (Level 14)
+## 🐳 Docker Single-Command Production Deployment
 
-Comprehensive performance audit and optimization report documented in [docs/performance.md](file:///e:/CAMPUSFLOW/docs/performance.md).
+Launch the entire full-stack cluster (MongoDB 7.0 + Backend API + Nginx Static Frontend) with Docker Compose:
 
-- **Route Code-Splitting**: React.lazy() route splitting reduced initial entry bundle from **684.95 kB** to **32.82 kB** (**-95.2% size reduction**).
-- **HTTP Payload Compression**: Automatic Gzip/Deflate compression via `compression` middleware saving ~75% wire bandwidth.
-- **POJO Query Projections**: Plain object `.lean()` projections bypassing Mongoose hydration for 30%–40% faster read latency.
-- **Index Deduplication**: Cleaned schema index declarations for optimal B-tree write throughput.
-- **Socket Lifecycle & Presence**: Real-time room presence tracking with automated cleanup on client disconnect.
-
----
-
-## 🚀 Productionization, Docker & CI/CD Pipeline (Level 15)
-
-Complete production deployment guide and operations manual documented in [docs/deployment.md](file:///e:/CAMPUSFLOW/docs/deployment.md).
-
-### CI/CD & Deployment Pipeline:
-```text
-Developer
-    ↓
-Git Push
-    ↓
-GitHub
-    ↓
-CI (GitHub Actions)
-    ├── Lint (ESLint 0 errors)
-    ├── Test Server (158 Tests)
-    ├── Test Client (41 Tests)
-    └── Build (Vite 32kB entry chunk)
-    ↓
-Deployment (Docker / Cloud VM / K8s)
-    ↓
-Frontend (Nginx Alpine SPA Server)
-    ↓ (Reverse Proxy /api & /socket.io)
-Backend (Node.js Express + Socket.IO Server)
-    ↓
-MongoDB (MongoDB Replica Set / Atlas)
-```
-
-### Production Single-Command Launch (Docker Compose):
 ```bash
-# 1. Clone the repository
-git clone https://github.com/kubervaidya24-max/CAMPUSFLOW.git
-cd CAMPUSFLOW
-
-# 2. Launch full-stack container cluster
 docker compose up -d --build
 ```
-- **Web App**: http://localhost
-- **Backend API**: http://localhost:5000
-- **Health Check**: http://localhost:5000/api/health
+- **Web Application (Nginx)**: [http://localhost](http://localhost)
+- **Backend API**: [http://localhost:5000](http://localhost:5000)
+- **Health Endpoint**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
 ---
 
-## 🧪 Testing & Quality Assurance (Level 15)
+## 🧪 Testing & Quality Engineering
 
 Comprehensive testing architecture documented in [docs/testing.md](file:///e:/CAMPUSFLOW/docs/testing.md).
 
@@ -258,17 +135,49 @@ npm run test
 # Run backend integration, unit, E2E, and security tests (16 suites, 158 tests)
 npm run test:server
 
-# Run frontend component tests (12 suites, 41 tests)
+# Run frontend component and smoke tests (12 suites, 41 tests)
 npm run test:client
 
-# Run linting across all workspaces (0 errors, 0 warnings)
+# Run ESLint across all workspaces (0 errors, 0 warnings)
 npm run lint
 
-# Production client bundle build
+# Production client bundle compilation (32.82 kB entry chunk)
 npm run build
 ```
 
 ---
 
-## 📄 License
-This project is licensed under the [MIT License](LICENSE).
+## 🔒 Security Hardening Certifications
+
+Comprehensive security audit documented in [docs/security.md](file:///e:/CAMPUSFLOW/docs/security.md).
+
+- **NoSQL Injection Neutralization**: Global `sanitize` middleware recursively stripping `$` and `.` MongoDB operator characters.
+- **Rate Limiting Protection**: `authLimiter` (15 req/15m) on authentication routes and `apiLimiter` (1000 req/15m) globally.
+- **IDOR Multi-Tenant Isolation**: Private resources (resumes, job applications, submissions) strictly bound to `req.user._id`.
+- **Privilege Escalation Defense**: Strict server-side RBAC (`authorize('faculty')`, `authorize('admin')`) and immediate token rejection for suspended users (`isActive: false`).
+- **Sensitive Field Stripping**: Schema serialization `toJSON` hooks stripping `password` and `refreshToken`.
+- **Payload Limit Caps**: 2MB body parser limits preventing payload exhaustion DoS.
+
+---
+
+## ⚡ Performance Benchmark Certifications
+
+Comprehensive performance audit documented in [docs/performance.md](file:///e:/CAMPUSFLOW/docs/performance.md).
+
+- **Route Code-Splitting**: React.lazy() route splitting reduced initial entry bundle from **684.95 kB** to **32.82 kB** (**-95.2% size reduction**).
+- **HTTP Payload Compression**: Automatic Gzip/Deflate compression via `compression` middleware saving ~75% wire bandwidth.
+- **POJO Query Projections**: Plain object `.lean()` projections bypassing Mongoose hydration for 30%–40% faster read latency.
+- **Index Deduplication**: Cleaned schema index declarations for optimal B-tree write throughput.
+- **Socket Lifecycle & Presence**: Real-time room presence tracking with automated cleanup on client disconnect.
+
+---
+
+## 📜 Complete Release History
+
+See [CHANGELOG.md](file:///e:/CAMPUSFLOW/CHANGELOG.md) for full milestone progression from Level 0 (`v0.1.0`) to Level 16 (`v1.7.0`).
+
+---
+
+## 📄 License & Authorship
+
+Distributed under the **MIT License**. Created with precision for academic excellence.
