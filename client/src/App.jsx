@@ -14,6 +14,9 @@ import { CourseEditorPage } from './pages/CourseEditorPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
 import { AssignmentDetailsPage } from './pages/AssignmentDetailsPage';
 import { AssignmentEditorPage } from './pages/AssignmentEditorPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
+import { ProjectEditorPage } from './pages/ProjectEditorPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -140,6 +143,38 @@ export const App = () => {
               element={
                 <ProtectedRoute allowedRoles={['faculty', 'admin']}>
                   <AssignmentEditorPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="projects"
+              element={
+                <ProtectedRoute>
+                  <ProjectsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="projects/new"
+              element={
+                <ProtectedRoute>
+                  <ProjectEditorPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="projects/:id"
+              element={
+                <ProtectedRoute>
+                  <ProjectDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="projects/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <ProjectEditorPage />
                 </ProtectedRoute>
               }
             />

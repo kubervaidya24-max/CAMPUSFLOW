@@ -1,6 +1,6 @@
 # CampusFlow 🎓
 
-> **Unified Platform for College Students** — Academics, Coursework, Projects, Placement Prep & Career Growth.
+> **Unified Platform for College Students** — Academics, Deliverables, Team Projects & Kanban, Placement Prep & Career Growth.
 
 [![CampusFlow CI](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
@@ -9,12 +9,13 @@
 [![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Refresh%20Rotation-emerald.svg)](https://jwt.io/)
 [![Courses](https://img.shields.io/badge/Courses-Syllabus%20%2B%20Enrollment-blueviolet.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 [![Assignments](https://img.shields.io/badge/Assignments-Submissions%20%26%20Grading-sky.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
+[![Projects](https://img.shields.io/badge/Projects-Kanban%20%26%20Collab-emerald.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 
 ---
 
 ## 📌 Project Overview
 
-**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for course management, assignments & deliverables, team project tracking, real-time collaboration, placement preparation, and dynamic resume building.
+**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for academic courses, assignment submissions, collaborative project workspaces with interactive Kanban boards, placement preparation, and dynamic resume building.
 
 ---
 
@@ -25,11 +26,11 @@ campusflow/
 ├── client/                     # Frontend (React 18, Vite, Tailwind CSS, TanStack Query, Axios)
 │   ├── public/                 # Static assets (Favicon, SVG logos)
 │   ├── src/
-│   │   ├── components/         # Reusable UI (Navbar, Footer, CourseCard, AssignmentCard, ProtectedRoute)
+│   │   ├── components/         # Reusable UI (Navbar, Footer, CourseCard, AssignmentCard, ProjectCard, KanbanBoard, ProtectedRoute)
 │   │   ├── context/            # Global AuthContext & session restore provider
-│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, ProfilePage, EditProfilePage, CoursesPage, CourseDetailsPage, CourseEditorPage, AssignmentsPage, AssignmentDetailsPage, AssignmentEditorPage, NotFoundPage)
-│   │   ├── services/           # Axios API clients (authService, userService, courseService, assignmentService)
-│   │   ├── tests/              # Frontend smoke, auth, guard, profile, course, and assignment tests (16 tests)
+│   │   ├── pages/              # Route pages (Landing, Login, Register, Dashboard, Profile, EditProfile, Courses, CourseDetails, CourseEditor, Assignments, AssignmentDetails, AssignmentEditor, Projects, ProjectDetails, ProjectEditor, NotFound)
+│   │   ├── services/           # Axios API clients (authService, userService, courseService, assignmentService, projectService)
+│   │   ├── tests/              # Frontend smoke, auth, guard, profile, course, assignment, and project tests (19 tests)
 │   │   ├── App.jsx             # Root routing & AuthProvider wrapper
 │   │   ├── index.css           # Tailwind base styles & glassmorphism tokens
 │   │   └── main.jsx            # React 18 DOM mount
@@ -39,15 +40,15 @@ campusflow/
 ├── server/                     # Backend (Node.js, Express, Mongoose, Zod, JWT)
 │   ├── src/
 │   │   ├── config/             # Environment variables (env.js) & MongoDB connection (db.js)
-│   │   ├── controllers/        # Request handlers (authController, userController, courseController, assignmentController, submissionController, healthController)
+│   │   ├── controllers/        # Request handlers (auth, user, course, assignment, submission, project, task, health)
 │   │   ├── middleware/         # Error handling, 404, JWT authentication, role authorization, validation
-│   │   ├── models/             # Mongoose schemas (User, Course, Assignment, Submission)
-│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/assignments, /api/submissions, /api/health)
+│   │   ├── models/             # Mongoose schemas (User, Course, Assignment, Submission, Project, Task, ProjectActivity)
+│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/assignments, /api/submissions, /api/projects, /api/tasks, /api/health)
 │   │   ├── utils/              # Standardized API response, ApiError class, cookie helpers
-│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators, assignmentValidators)
+│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators, assignmentValidators, projectValidators)
 │   │   ├── app.js              # Express app setup & middleware pipeline (Helmet, CORS, Morgan, CookieParser)
 │   │   └── server.js           # Server bootstrap & graceful lifecycle manager
-│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (55 tests)
+│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (61 tests)
 │   └── package.json
 │
 ├── docs/                       # Architecture & Setup guides
@@ -75,41 +76,45 @@ campusflow/
 | **Level 2** | **User Profiles & Role-Based Access Control (Student & Faculty Profiles, Whitelisting)** | **Completed** ✅ |
 | **Level 3** | **Academic & Course Management (Syllabus Builder, Enrollment Guards, Capacity Limits)** | **Completed** ✅ |
 | **Level 4** | **Assignments & Submissions (Deadline Validation, Late Flags, Faculty Grading & Feedback)** | **Completed** ✅ |
-| Level 5 | Project Collaboration & Real-Time Chat (Socket.IO) | *Upcoming* |
+| **Level 5** | **Project Collaboration & Kanban (Team Invitations, 3-Column Kanban Board, Activity Audit Log)** | **Completed** ✅ |
 | Level 6 | Placement Preparation & Practice Sheets | *Upcoming* |
 | Level 7 | Dynamic ATS Resume Builder | *Upcoming* |
 | Level 8 | Analytics, Admin Dashboard & Production Hardening | *Upcoming* |
 
 ---
 
-## 📝 Level 4 Assignments & Submissions Subsystem
+## 🗂️ Level 5 Project Collaboration Subsystem
 
-### 1. Capabilities by Role
-- **Faculty**:
-  - Create assignments bound to courses they teach with custom point scales, due dates, strict/late submission toggles, and attached resource links.
-  - Edit or delete assignments.
-  - View all student submissions in a live evaluation roster.
-  - Grade student submissions with score validation (`score <= maxMarks`) and constructive remarks.
-- **Student**:
-  - View all assignments scoped to enrolled courses.
-  - Filter assignments by status: `Pending`, `Submitted`, `Late`, `Graded`.
-  - Submit notes, solution URLs (e.g. GitHub repos), and attached deliverables.
-  - Update / resubmit deliverables before the deadline.
-  - View awarded grades and instructor feedback.
+### 1. Capabilities & Workflow
+- **Collaborative Project Workspaces**:
+  - Create and configure software projects with title, description, tech stack tags, repository URL, and live demo links.
+  - Team management: invite collaborators via email, accept/reject pending invitations, remove members (owner only), or leave project.
+- **Interactive 3-Column Kanban Board**:
+  - Organize tasks into **TODO**, **IN PROGRESS**, and **DONE**.
+  - Create tasks with priority indicators (`Low`, `Medium`, `High`, `Urgent`), deadlines, assignees, and descriptions.
+  - Quick status progression buttons persist directly to the database.
+- **Activity Audit Feed**:
+  - Automatically records all events: `PROJECT_CREATED`, `INVITATION_SENT`, `MEMBER_JOINED`, `MEMBER_REMOVED`, `MEMBER_LEFT`, `TASK_CREATED`, `TASK_MOVED`, `TASK_COMPLETED`, and `TASK_DELETED`.
 
-### 2. Available Assignment & Submission APIs
+### 2. Available Project & Task APIs
 
 | Method | Endpoint | Access Level | Description |
 |---|---|---|---|
-| `POST` | `/api/assignments` | Faculty / Admin | Create new assignment for a course |
-| `GET` | `/api/assignments` | Protected | List assignments (filtered by course & student enrollment) |
-| `GET` | `/api/assignments/:id` | Protected | Retrieve assignment details, attachments, and submission state |
-| `PATCH` | `/api/assignments/:id` | Faculty Owner / Admin | Update assignment metadata or deadline |
-| `DELETE` | `/api/assignments/:id` | Faculty Owner / Admin | Delete assignment and associated submissions |
-| `POST` | `/api/assignments/:id/submit` | Student | Submit or update assignment deliverable (guards against deadline) |
-| `GET` | `/api/assignments/:id/submissions` | Faculty Owner / Admin | Retrieve all student submissions for an assignment |
-| `GET` | `/api/submissions/me` | Student | List all submissions and grades for the current student |
-| `PATCH` | `/api/submissions/:id/grade` | Faculty Owner / Admin | Evaluate and score student submission |
+| `POST` | `/api/projects` | Protected | Create new project |
+| `GET` | `/api/projects` | Protected | List user's projects or pending invitations |
+| `GET` | `/api/projects/:id` | Member / Admin | Retrieve project workspace details |
+| `PATCH` | `/api/projects/:id` | Owner / Lead | Update project metadata |
+| `DELETE` | `/api/projects/:id` | Owner / Admin | Delete project, tasks, and activities |
+| `POST` | `/api/projects/:id/invitations` | Owner / Lead | Invite a collaborator by email |
+| `POST` | `/api/projects/:id/invitations/respond` | Protected | Accept or decline invitation |
+| `DELETE` | `/api/projects/:id/members/:userId` | Owner / Admin | Remove a team member |
+| `POST` | `/api/projects/:id/leave` | Member | Leave project team |
+| `POST` | `/api/projects/:id/tasks` | Member | Create task in project |
+| `GET` | `/api/projects/:id/tasks` | Member | Get all tasks for project |
+| `PATCH` | `/api/tasks/:id` | Member | Update task details |
+| `PATCH` | `/api/tasks/:id/status` | Member | Move task status (`TODO` / `IN_PROGRESS` / `DONE`) |
+| `DELETE` | `/api/tasks/:id` | Member | Delete task |
+| `GET` | `/api/projects/:id/activities` | Member | Retrieve project activity feed |
 
 ---
 
@@ -147,7 +152,7 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests across monorepo (71 tests total: 55 backend + 16 frontend)
+# Run all tests across monorepo (80 tests total: 61 backend + 19 frontend)
 npm run test
 
 # Run backend integration tests only

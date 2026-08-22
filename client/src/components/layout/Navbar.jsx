@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   BookOpen,
   FileText,
+  FolderGit2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -36,7 +37,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 4
+                Level 5
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
@@ -62,6 +63,14 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
                 <span>Assignments</span>
+              </Link>
+
+              <Link
+                to="/projects"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                <FolderGit2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Projects</span>
               </Link>
             </div>
           )}

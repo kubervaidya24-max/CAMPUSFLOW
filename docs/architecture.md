@@ -6,175 +6,195 @@ CampusFlow is designed using the **MERN** (MongoDB, Express, React, Node.js) tec
 
 ---
 
-## 2. Course & Assignment Architecture
+## 2. Project Collaboration Architecture
 
 ```mermaid
 graph TD
     Client["React Client (Axios + TanStack Query)"] --> Gateway["Express API Gateway"]
     
     Gateway --> AuthMiddleware["Auth Middleware (authenticate)"]
-    AuthMiddleware --> RoleGuard["Role Authorization Guard (authorize(...roles))"]
+    AuthMiddleware --> MembershipGuard["Project Membership Guard"]
     
-    RoleGuard --> AssignmentCtrl["Assignment & Submission Controllers"]
+    MembershipGuard --> ProjectCtrl["Project & Task Controllers"]
     
-    subgraph Operations ["Level 4 Operations"]
-        FacultyOps["Faculty Actions<br/>- Create / Edit / Delete Assignments<br/>- Attach Resource Links<br/>- Set Due Dates & Max Points<br/>- Evaluate & Grade Submissions"]
-        StudentOps["Student Actions<br/>- Filter by Course & Due Date<br/>- Submit Solution Notes & URLs<br/>- Update Submission Before Deadline<br/>- View Marks & Feedback"]
+    subgraph Operations ["Level 5 Operations"]
+        TeamOps["Team Actions<br/>- Create Project Workspaces<br/>- Invite Teammates by Email<br/>- Accept / Decline Invitations<br/>- Leave / Remove Member"]
+        KanbanOps["Kanban Board Actions<br/>- Create Tasks (TODO)<br/>- Assign Tasks to Teammates<br/>- Move Tasks (IN_PROGRESS -> DONE)<br/>- Delete Tasks"]
+        AuditOps["Activity Logger<br/>- Record Immutable Audit Trail<br/>- Real-time Timeline Feed"]
     end
     
-    AssignmentCtrl --> AssignmentModel[("MongoDB: Assignment Collection<br/>- Index: course + dueDate<br/>- Index: faculty")]
-    AssignmentCtrl --> SubmissionModel[("MongoDB: Submission Collection<br/>- Unique Compound Index: assignment + student<br/>- Index: course + student")]
+    ProjectCtrl --> ProjectModel[("MongoDB: Project Collection<br/>- Index: members.user<br/>- Index: invitations.user")]
+    ProjectCtrl --> TaskModel[("MongoDB: Task Collection<br/>- Compound Index: project + status + order")]
+    ProjectCtrl --> ActivityModel[("MongoDB: ProjectActivity Collection<br/>- Compound Index: project + createdAt")]
 ```
 
 ---
 
-## 3. Assignment Creation Flow
+## 3. Project Creation Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Faculty
-    participant Client as React Client (AssignmentEditorPage)
-    participant API as Express API (/api/assignments)
-    participant Val as Zod Validator (createAssignmentSchema)
-    participant DB as MongoDB (Assignment Collection)
+    actor Student as Project Creator
+    participant Client as React Client (ProjectEditorPage)
+    participant API as Express API (/api/projects)
+    participant Val as Zod Validator (createProjectSchema)
+    participant DB as MongoDB (Project & Activity)
 
-    Faculty->>Client: Enters Title, Description, Course, Due Date, Points, Attachments
-    Client->>API: POST /api/assignments (Bearer Token)
-    API->>Val: Validate Assignment Payload
-    Val-->>API: Validated Data
-    API->>DB: Check if Course exists & Faculty is Instructor
-    alt Faculty is not course owner
-        API-->>Client: 403 Forbidden ("You do not have permission")
-    else Faculty owns course
-        API->>DB: Create Assignment Document
-        DB-->>API: Saved Assignment
-        API-->>Client: 201 Created (Assignment JSON)
-        Client->>Client: Redirect to /assignments/:id
-    end
-```
-
----
-
-## 4. Student Submission Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant Client as React Client (AssignmentDetailsPage)
-    participant API as Express API (/api/assignments/:id/submit)
-    participant Auth as JWT Auth Middleware
-    participant DB as MongoDB (Submission Model)
-
-    Student->>Client: Submits Solution Text, GitHub URL, and Attachments
-    Client->>API: POST /api/assignments/:id/submit (Bearer Token)
-    API->>Auth: Verify Token & Student Role
-    Auth-->>API: Validated Student Session (req.user)
-    API->>DB: Find Assignment & Check Course Enrollment
-    alt Student is not enrolled in course
-        API-->>Client: 403 Forbidden ("Must be enrolled in course")
-    else Past deadline and allowLate is false
-        API-->>Client: 400 Bad Request ("Deadline passed; late submissions not allowed")
-    else Valid Submission (On-time or Late Allowed)
-        Note over API,DB: Determine status ('submitted' or 'late')
-        API->>DB: Upsert Submission Document for (assignment, student)
-        DB-->>API: Saved Submission Record
-        API-->>Client: 200 OK (Submission JSON with status)
-        Client->>Client: Invalidate 'assignment' query & show confirmation
-    end
-```
-
----
-
-## 5. Faculty Grading Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Faculty
-    participant Client as React Client (AssignmentDetailsPage)
-    participant API as Express API (/api/submissions/:id/grade)
-    participant Val as Zod Validator (gradeSubmissionSchema)
-    participant DB as MongoDB (Submission Model)
-
-    Faculty->>Client: Enters Score & Feedback Remarks
-    Client->>API: PATCH /api/submissions/:id/grade (Bearer Token)
-    API->>Val: Validate Score & Feedback
+    Student->>Client: Enters Title, Description, Tech Stack, URLs
+    Client->>API: POST /api/projects (Bearer Token)
+    API->>Val: Validate Project Data
     Val-->>API: Validated Payload
-    API->>DB: Fetch Submission & Check Assignment Ownership
-    alt Non-owning faculty
-        API-->>Client: 403 Forbidden
-    else Score exceeds assignment max points
-        API-->>Client: 400 Bad Request ("Score exceeds maximum points")
-    else Valid evaluation
-        API->>DB: Update grade = { score, feedback, gradedAt, gradedBy } & status = 'graded'
-        DB-->>API: Saved Submission Document
-        API-->>Client: 200 OK (Graded Submission JSON)
-        Client->>Client: Invalidate submissions query & update UI
-    end
+    API->>DB: Create Project (owner: req.user._id, members: [{ user: req.user._id, role: 'owner' }])
+    API->>DB: Log Activity ('PROJECT_CREATED')
+    DB-->>API: Saved Project Document
+    API-->>Client: 201 Created (Project JSON)
+    Client->>Client: Redirect to /projects/:id
 ```
 
 ---
 
-## 6. Data Model Relationships
+## 4. Team Invitation Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Owner as Project Owner
+    actor Teammate as Invited Student
+    participant Client as React Client (ProjectDetailsPage / ProjectsPage)
+    participant API as Express API (/api/projects/:id/invitations)
+    participant DB as MongoDB (Project & User)
+
+    Owner->>Client: Enters Teammate's Email & Role
+    Client->>API: POST /api/projects/:id/invitations
+    API->>DB: Find User by Email
+    alt User not found or already member
+        API-->>Client: 400 Bad Request
+    else Valid invitation
+        API->>DB: Push into project.invitations ({ user, invitedBy, status: 'pending' })
+        API->>DB: Log Activity ('INVITATION_SENT')
+        API-->>Client: 200 OK ("Invitation sent")
+    end
+
+    Teammate->>Client: Opens "Invitations" Tab (/projects?scope=invitations)
+    Client->>API: GET /api/projects?scope=invitations
+    API-->>Client: List of pending project invites
+    Teammate->>Client: Clicks "Accept & Join"
+    Client->>API: POST /api/projects/:id/invitations/respond ({ action: 'accept' })
+    API->>DB: Update invitation status to 'accepted' & push user to project.members
+    API->>DB: Log Activity ('MEMBER_JOINED')
+    API-->>Client: 200 OK ("You joined the project!")
+```
+
+---
+
+## 5. Kanban Task Lifecycle Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Member as Project Member
+    participant Client as React Client (KanbanBoard)
+    participant API as Express API (/api/tasks/:id/status)
+    participant DB as MongoDB (Task & ProjectActivity)
+
+    Member->>Client: Clicks "Start Progress" on TODO task
+    Client->>API: PATCH /api/tasks/:id/status ({ status: 'IN_PROGRESS' })
+    API->>DB: Verify user is project member
+    API->>DB: Update task.status = 'IN_PROGRESS'
+    API->>DB: Log Activity ('TASK_MOVED', from: 'TODO', to: 'IN_PROGRESS')
+    DB-->>API: Updated Task Document
+    API-->>Client: 200 OK (Task JSON)
+    Client->>Client: Optimistically re-render Kanban column
+```
+
+---
+
+## 6. Activity Audit Logging Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Team Collaborator
+    participant API as Express API
+    participant Logger as Activity Logger Service
+    participant DB as MongoDB (ProjectActivity)
+    participant Feed as Client Activity Timeline
+
+    User->>API: Executes Task/Team Action (e.g. Move Task, Complete Task)
+    API->>DB: Persist Task/Project State
+    API->>Logger: logActivity(projectId, userId, action, details)
+    Logger->>DB: Insert into ProjectActivity ({ project, user, action, details, createdAt })
+    User->>Feed: Views Activity Feed (/projects/:id Tab: Activities)
+    Feed->>API: GET /api/projects/:id/activities
+    API-->>Feed: 200 OK (Chronological Audit Feed)
+```
+
+---
+
+## 7. Data Models & Indexes
 
 ```mermaid
 classDiagram
-    class Course {
-        +ObjectId _id
-        +String title
-        +String code
-        +ObjectId faculty
-        +EnrolledStudent[] enrolledStudents
-    }
-
-    class Assignment {
+    class Project {
         +ObjectId _id
         +String title
         +String description
-        +ObjectId course
-        +ObjectId faculty
-        +Date dueDate
-        +Number totalPoints
-        +Boolean allowLate
-        +Attachment[] attachments
+        +ObjectId owner
+        +Member[] members
+        +Invitation[] invitations
+        +String[] technologies
+        +String repositoryUrl
+        +String liveUrl
+        +String status
+        +Date deadline
+    }
+
+    class Member {
+        +ObjectId user
+        +String role
+        +Date joinedAt
+    }
+
+    class Invitation {
+        +ObjectId user
+        +ObjectId invitedBy
         +String status
         +Date createdAt
     }
 
-    class Submission {
+    class Task {
         +ObjectId _id
-        +ObjectId assignment
-        +ObjectId course
-        +ObjectId student
-        +String content
-        +Attachment[] attachments
-        +Date submittedAt
+        +ObjectId project
+        +String title
+        +String description
+        +ObjectId assignee
+        +ObjectId creator
+        +String priority
         +String status
-        +Grade grade
+        +Date deadline
+        +Number order
     }
 
-    class Grade {
-        +Number score
-        +String feedback
-        +Date gradedAt
-        +ObjectId gradedBy
+    class ProjectActivity {
+        +ObjectId _id
+        +ObjectId project
+        +ObjectId user
+        +String action
+        +Object details
+        +Date createdAt
     }
 
-    Course "1" <-- "*" Assignment : belongs to
-    Assignment "1" <-- "*" Submission : receives
-    Submission *-- Grade : evaluated with
+    Project *-- Member
+    Project *-- Invitation
+    Project "1" <-- "*" Task : contains
+    Project "1" <-- "*" ProjectActivity : logs
 ```
 
----
-
-## 7. Database Indexes & Performance Design
-
+### Database Performance Indexes:
 | Collection | Index Fields | Type | Purpose |
 |---|---|---|---|
-| `assignments` | `{ course: 1, dueDate: 1 }` | Compound | Fast retrieval of course assignments sorted by deadline |
-| `assignments` | `{ faculty: 1 }` | Single Field | Instructor assignment management |
-| `submissions` | `{ assignment: 1, student: 1 }` | Unique Compound | Strict guarantee of one submission per student per assignment |
-| `submissions` | `{ course: 1, student: 1 }` | Compound | Rapid lookup of student submissions across a course |
-| `submissions` | `{ student: 1 }` | Single Field | Student grades and submission history lookup |
+| `projects` | `{ "members.user": 1 }` | Multikey | Fast retrieval of user's active projects |
+| `projects` | `{ "invitations.user": 1, "invitations.status": 1 }` | Compound | Fast pending invitations lookup |
+| `tasks` | `{ project: 1, status: 1, order: 1 }` | Compound | Instant Kanban board column rendering |
+| `projectactivities` | `{ project: 1, createdAt: -1 }` | Compound | Fast chronological activity feed pagination |

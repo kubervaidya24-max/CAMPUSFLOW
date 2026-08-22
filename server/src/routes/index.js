@@ -5,6 +5,8 @@ import userRoutes from './userRoutes.js';
 import courseRoutes from './courseRoutes.js';
 import assignmentRoutes from './assignmentRoutes.js';
 import submissionRoutes from './submissionRoutes.js';
+import projectRoutes from './projectRoutes.js';
+import taskRoutes from './taskRoutes.js';
 
 const router = Router();
 
@@ -15,5 +17,7 @@ router.use('/users', userRoutes);
 router.use('/courses', courseRoutes);
 router.use('/assignments', assignmentRoutes);
 router.use('/submissions', submissionRoutes);
+router.use('/projects', projectRoutes);
+router.use('/tasks', taskRoutes);
 
 export default router;
