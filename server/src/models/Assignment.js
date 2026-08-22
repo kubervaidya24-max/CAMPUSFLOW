@@ -46,7 +46,6 @@ const assignmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Faculty creator reference is required'],
-      index: true,
     },
     dueDate: {
       type: Date,
