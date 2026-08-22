@@ -1,5 +1,13 @@
+import dns from 'dns';
 import mongoose from 'mongoose';
 import { config } from './env.js';
+
+// Configure reliable DNS servers (Google + Cloudflare) for MongoDB Atlas SRV resolution
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // Fall back to system DNS if custom servers fail
+}
 
 let isConnected = false;
 let memoryServerInstance = null;
@@ -11,16 +19,16 @@ export const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(config.mongoUri, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 5000,
     });
 
     isConnected = conn.connection.readyState === 1;
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
     return conn.connection;
   } catch (error) {
-    // In development mode, if local MongoDB is not running, provide an automatic in-memory fallback
-    if (!config.isProduction && !config.isTest && error.message.includes('ECONNREFUSED')) {
-      console.warn('[Database Notice] Local MongoDB (127.0.0.1:27017) not detected. Launching in-memory MongoDB fallback for instant local dev...');
+    // In development mode, if local MongoDB or Atlas is not reachable, provide an automatic in-memory fallback
+    if (!config.isProduction && !config.isTest) {
+      console.warn(`[Database Notice] MongoDB connection failed (${error.message}). Launching in-memory MongoDB fallback for instant local dev...`);
       try {
         const { MongoMemoryServer } = await import('mongodb-memory-server');
         memoryServerInstance = await MongoMemoryServer.create();
