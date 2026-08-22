@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { config } from './config/env.js';
 import apiRoutes from './routes/index.js';
@@ -11,6 +12,20 @@ import { sanitize } from './middleware/sanitize.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
+
+// HTTP Response Compression (Gzip / Deflate for network speed optimization)
+app.use(
+  compression({
+    level: 6,
+    threshold: 1024, // only compress responses above 1kb
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+  })
+);
 
 // Security HTTP headers
 app.use(

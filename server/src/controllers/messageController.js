@@ -37,7 +37,8 @@ export const getProjectMessages = async (req, res, next) => {
     const messages = await Message.find(query)
       .sort({ createdAt: 1 })
       .limit(limit)
-      .populate('sender', 'name email role profile.avatar');
+      .populate('sender', 'name email role profile.avatar')
+      .lean();
 
     return sendSuccess(res, 'Project messages retrieved successfully', {
       messages,

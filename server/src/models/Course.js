@@ -84,7 +84,6 @@ const courseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Faculty instructor is required'],
-      index: true,
     },
     enrolledStudents: {
       type: [enrolledStudentSchema],
