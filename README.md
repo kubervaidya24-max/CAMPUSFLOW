@@ -7,7 +7,7 @@
 [![Node Version](https://img.shields.io/badge/Node.js-v20%2B-emerald.svg)](https://nodejs.org/)
 [![React Version](https://img.shields.io/badge/React-18%2B-blue.svg)](https://react.dev/)
 [![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Refresh%20Rotation-emerald.svg)](https://jwt.io/)
-[![RBAC](https://img.shields.io/badge/RBAC-Student%20%7C%20Faculty%20%7C%20Admin-blueviolet.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
+[![Courses](https://img.shields.io/badge/Courses-Syllabus%20%2B%20Enrollment-blueviolet.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 
 ---
 
@@ -24,11 +24,11 @@ campusflow/
 ├── client/                     # Frontend (React 18, Vite, Tailwind CSS, TanStack Query, Axios)
 │   ├── public/                 # Static assets (Favicon, SVG logos)
 │   ├── src/
-│   │   ├── components/         # Reusable UI & Layouts (Navbar, Footer, ErrorBoundary, ProtectedRoute)
+│   │   ├── components/         # Reusable UI & Layouts (Navbar, Footer, CourseCard, ProtectedRoute)
 │   │   ├── context/            # Global AuthContext & session restore provider
-│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, ProfilePage, EditProfilePage, NotFoundPage)
-│   │   ├── services/           # Axios API client with silent refresh queue, authService, userService
-│   │   ├── tests/              # Frontend smoke, auth, guard, and profile tests (10 tests)
+│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, ProfilePage, EditProfilePage, CoursesPage, CourseDetailsPage, CourseEditorPage, NotFoundPage)
+│   │   ├── services/           # Axios API clients (authService, userService, courseService)
+│   │   ├── tests/              # Frontend smoke, auth, guard, profile, and course tests (13 tests)
 │   │   ├── App.jsx             # Root routing & AuthProvider wrapper
 │   │   ├── index.css           # Tailwind base styles & glassmorphism tokens
 │   │   └── main.jsx            # React 18 DOM mount
@@ -38,15 +38,15 @@ campusflow/
 ├── server/                     # Backend (Node.js, Express, Mongoose, Zod, JWT)
 │   ├── src/
 │   │   ├── config/             # Environment variables (env.js) & MongoDB connection (db.js)
-│   │   ├── controllers/        # Request handlers (authController, userController, healthController)
+│   │   ├── controllers/        # Request handlers (authController, userController, courseController, healthController)
 │   │   ├── middleware/         # Error handling, 404, JWT authentication, role authorization, validation
-│   │   ├── models/             # Mongoose schemas (User with student & faculty profiles, bcrypt hashing, token rotation)
-│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/health)
+│   │   ├── models/             # Mongoose schemas (User, Course with indexing & virtual enrollment counters)
+│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/health)
 │   │   ├── utils/              # Standardized API response, ApiError class, cookie helpers
-│   │   ├── validators/         # Zod schemas (authValidators, userValidators)
+│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators)
 │   │   ├── app.js              # Express app setup & middleware pipeline (Helmet, CORS, Morgan, CookieParser)
 │   │   └── server.js           # Server bootstrap & graceful lifecycle manager
-│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (27 tests)
+│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (43 tests)
 │   └── package.json
 │
 ├── docs/                       # Architecture & Setup guides
@@ -72,7 +72,7 @@ campusflow/
 | **Level 0** | **Monorepo Foundation, Express Server, Vite Client, Health API & CI** | **Completed** ✅ |
 | **Level 1** | **Authentication & RBAC (JWT, HTTP-only Cookies, Token Rotation, bcrypt, Zod)** | **Completed** ✅ |
 | **Level 2** | **User Profiles & Role-Based Access Control (Student & Faculty Profiles, Whitelisting)** | **Completed** ✅ |
-| Level 3 | Academic & Course Management | *Upcoming* |
+| **Level 3** | **Academic & Course Management (Syllabus Builder, Enrollment Guards, Capacity Limits)** | **Completed** ✅ |
 | Level 4 | Assignments, Submissions & Kanban Tasks | *Upcoming* |
 | Level 5 | Project Collaboration & Real-Time Chat (Socket.IO) | *Upcoming* |
 | Level 6 | Placement Preparation & Practice Sheets | *Upcoming* |
@@ -81,30 +81,33 @@ campusflow/
 
 ---
 
-## 👤 Level 2 Profile & RBAC Subsystem
+## 📚 Level 3 Course Management Subsystem
 
-### 1. Student & Faculty Profile Data Model
-- **Student Profile**: Name, avatar / preset, department, semester (1-12), graduation year, college roll ID, bio, technical skills tags, academic interests tags, social portfolio links (GitHub, LinkedIn, Website).
-- **Faculty Profile**: Name, avatar, department, designation (e.g. Professor, Associate Professor), office location / cabin, subjects taught tags, research bio.
-- **Admin Role**: Minimal privileges foundation; access to all user profiles and system diagnostic checks.
+### 1. Course Capabilities by Role
+- **Faculty**:
+  - Author courses with weekly syllabus modules, lecture schedules (days, time, hall), and capacity limits.
+  - Publish or draft courses (`draft` courses remain invisible to students).
+  - Update and manage enrolled students with live registration tables.
+  - Delete or archive courses owned by them.
+- **Student**:
+  - Explore published courses filtered by Department and Semester.
+  - Search courses by code (e.g. `CS401`), title, or topic keywords.
+  - Single-click enrollment with duplicate prevention and capacity enforcement.
+  - View "My Enrolled Courses" and unenroll/leave courses.
+- **Admin**:
+  - System-wide visibility and course oversight.
 
-### 2. Available User & Profile APIs
+### 2. Available Course APIs
 
 | Method | Endpoint | Access Level | Description |
 |---|---|---|---|
-| `GET` | `/api/users/me` | Protected (`Bearer`) | Retrieve current user's comprehensive profile |
-| `PATCH` | `/api/users/me` | Protected (`Bearer`) | Update current user's profile with strict field whitelisting |
-| `GET` | `/api/users/:id` | Protected (`Bearer`) | Retrieve public profile of any user by ID |
-| `POST` | `/api/auth/register` | Public | Register new user account |
-| `POST` | `/api/auth/login` | Public | Sign in with email & password |
-| `POST` | `/api/auth/refresh` | Public (Cookie/Body) | Token rotation & exchange |
-| `POST` | `/api/auth/logout` | Public (Cookie/Body) | Invalidate refresh tokens and clear cookies |
-| `GET` | `/api/health` | Public | Diagnostic system health check |
-
-### 3. Security Decisions & RBAC Controls
-- **Strict Whitelisting**: The `PATCH /api/users/me` validator uses strict Zod parsing. Any attempt to modify `role`, `password`, `_id`, or `refreshTokens` is completely rejected with `400 Bad Request`.
-- **Identity Isolation**: A user can only modify their own profile (`/api/users/me`). Direct modification of other users (`/api/users/:id`) is disallowed.
-- **Image Architecture**: Built-in curated SVG avatar presets + custom URL image support with live preview and initials fallback, avoiding unnecessary third-party paid dependencies.
+| `POST` | `/api/courses` | Faculty / Admin | Create new course with syllabus & schedule |
+| `GET` | `/api/courses` | Protected | List courses with filters (`department`, `semester`, `search`, `enrolled`, `facultyOnly`) |
+| `GET` | `/api/courses/:id` | Protected | Retrieve full course details, syllabus modules, and enrollment status |
+| `PATCH` | `/api/courses/:id` | Faculty Owner / Admin | Update course metadata, syllabus, capacity, or publish status |
+| `DELETE` | `/api/courses/:id` | Faculty Owner / Admin | Delete course |
+| `POST` | `/api/courses/:id/enroll` | Student | Enroll in a published course |
+| `DELETE` | `/api/courses/:id/enroll` | Student | Unenroll / leave a course |
 
 ---
 
@@ -150,7 +153,7 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests across monorepo (37 tests total: 27 backend + 10 frontend)
+# Run all tests across monorepo (56 tests total: 43 backend + 13 frontend)
 npm run test
 
 # Run backend integration tests only

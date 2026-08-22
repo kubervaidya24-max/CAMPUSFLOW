@@ -8,6 +8,9 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { EditProfilePage } from './pages/EditProfilePage';
+import { CoursesPage } from './pages/CoursesPage';
+import { CourseDetailsPage } from './pages/CourseDetailsPage';
+import { CourseEditorPage } from './pages/CourseEditorPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -70,6 +73,38 @@ export const App = () => {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="courses"
+              element={
+                <ProtectedRoute>
+                  <CoursesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="courses/new"
+              element={
+                <ProtectedRoute allowedRoles={['faculty', 'admin']}>
+                  <CourseEditorPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="courses/:id"
+              element={
+                <ProtectedRoute>
+                  <CourseDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="courses/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={['faculty', 'admin']}>
+                  <CourseEditorPage />
                 </ProtectedRoute>
               }
             />

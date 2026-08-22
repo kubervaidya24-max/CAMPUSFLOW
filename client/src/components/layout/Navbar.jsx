@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Layers, Activity, LogOut, LogIn, UserPlus, LayoutDashboard } from 'lucide-react';
+import { Layers, Activity, LogOut, LogIn, UserPlus, LayoutDashboard, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
@@ -27,15 +27,26 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 2
+                Level 3
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
           </div>
         </Link>
 
-        {/* Right side items */}
+        {/* Center/Right Items */}
         <div className="flex items-center gap-3 sm:gap-4">
+          {/* Courses Nav link if logged in */}
+          {isAuthenticated && (
+            <Link
+              to="/courses"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Courses</span>
+            </Link>
+          )}
+
           {/* API Health Pill */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
             <span className="relative flex h-2 w-2">
@@ -70,7 +81,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
             <span>Health</span>
           </a>
 
-          {/* Auth Navigation */}
+          {/* Auth Controls */}
           {isAuthenticated ? (
             <div className="flex items-center gap-2.5">
               <Link

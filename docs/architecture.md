@@ -6,116 +6,141 @@ CampusFlow is designed using the **MERN** (MongoDB, Express, React, Node.js) tec
 
 ---
 
-## 2. Role-Based Access Control (RBAC) Architecture (Level 2)
+## 2. Course Management Architecture (Level 3)
 
 ```mermaid
 graph TD
-    Client["React Client (Axios + AuthContext)"] --> Gateway["Express API Gateway"]
+    Client["React Client (Axios + TanStack Query)"] --> Gateway["Express API Gateway"]
     
     Gateway --> AuthMiddleware["Auth Middleware (authenticate)"]
-    AuthMiddleware --> RoleMiddleware["Role Authorization Guard (authorize(...roles))"]
+    AuthMiddleware --> RoleGuard["Role Authorization Guard (authorize(...roles))"]
     
-    RoleMiddleware -->|student, faculty, admin| UserCtrl["User Profile Controller"]
+    RoleGuard --> CourseCtrl["Course Controller"]
     
-    subgraph Roles ["Role Capabilities"]
-        Student["Student Role<br/>- View/Edit Own Profile<br/>- View Peer & Faculty Profiles<br/>- Semester, Skills, Social Links"]
-        Faculty["Faculty Role<br/>- View/Edit Own Profile<br/>- View Student Profiles<br/>- Designation, Subjects, Cabin"]
-        Admin["Admin Role<br/>- Read-all Access<br/>- System Diagnostics"]
+    subgraph Operations ["Course Operations"]
+        FacultyOps["Faculty Actions<br/>- Create / Edit / Delete Course<br/>- Publish / Draft Toggle<br/>- Author Syllabus Modules<br/>- View Enrolled Students"]
+        StudentOps["Student Actions<br/>- Search & Filter Catalog<br/>- View Course Syllabus & Schedule<br/>- Enroll (Capacity & Duplicate Guarded)<br/>- Leave Enrolled Course"]
     end
+    
+    CourseCtrl --> CourseModel[("MongoDB (Course Collection)<br/>- Unique Index on code<br/>- Compound Index: department + semester + status<br/>- Enrolled Students Index")]
 ```
 
 ---
 
-## 3. User Profile Update & Whitelisting Permission Flow
+## 3. Student Enrollment Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Authenticated User
-    participant Client as React Client (EditProfilePage)
-    participant API as Express API (/api/users/me)
+    actor Student
+    participant Client as React Client (CoursesPage / Details)
+    participant API as Express API (/api/courses/:id/enroll)
     participant Auth as JWT Auth Middleware
-    participant Val as Zod Validator (updateProfileSchema)
-    participant DB as MongoDB (User Collection)
+    participant DB as MongoDB (Course Model)
 
-    User->>Client: Edits Bio, Semester, Skills, Social Links
-    Client->>API: PATCH /api/users/me (Bearer Token)
-    API->>Auth: Verify Access Token signature
-    Auth->>Auth: Attach req.user
-    API->>Val: Validate request payload against strict whitelist
-    alt Payload contains forbidden keys (e.g. role, password, _id)
-        Val-->>Client: 400 Bad Request ("Validation failed: Unrecognized key")
-    else Payload valid
-        Val-->>API: Whitelisted payload
-        API->>DB: Update permitted profile fields on req.user & save()
-        DB-->>API: Updated User Document
-        API-->>Client: 200 OK (Updated User JSON)
-        Client->>Client: Update AuthContext state & navigate to /profile
+    Student->>Client: Clicks "Enroll in Course"
+    Client->>API: POST /api/courses/:id/enroll (Bearer Token)
+    API->>Auth: Verify Token & Student Role
+    Auth-->>API: Validated Student Session (req.user)
+    API->>DB: Find Course by ID
+    alt Course status is not 'published'
+        API-->>Client: 400 Bad Request ("Course is not published")
+    else Student is already enrolled in course
+        API-->>Client: 409 Conflict ("You are already enrolled in this course")
+    else Course capacity is reached
+        API-->>Client: 400 Bad Request ("Course capacity limit reached")
+    else Valid enrollment
+        API->>DB: Push { student: studentId, enrolledAt: Date.now() }
+        DB-->>API: Saved Course Document
+        API-->>Client: 200 OK ("Successfully enrolled in course")
+        Client->>Client: Invalidate 'courses' query & toggle button to "Enrolled"
     end
 ```
 
 ---
 
-## 4. User Data Model (Level 2 Extended)
+## 4. Faculty Course Creation & Management Flow
 
 ```mermaid
-classDiagram
-    class User {
-        +ObjectId _id
-        +String name
-        +String email
-        +String password (select: false)
-        +String role ("student" | "faculty" | "admin")
-        +Profile profile
-        +RefreshToken[] refreshTokens
-        +Date createdAt
-        +Date updatedAt
-        +comparePassword(candidate)
-        +generateAccessToken()
-        +generateRefreshToken()
-    }
+sequenceDiagram
+    autonumber
+    actor Faculty
+    participant Client as React Client (CourseEditorPage)
+    participant API as Express API (/api/courses)
+    participant Val as Zod Validator (createCourseSchema)
+    participant DB as MongoDB (Course Collection)
 
-    class Profile {
-        +String avatar
-        +String bio (max 500)
-        +String department
-        +Number semester (1-12)
-        +Number graduationYear
-        +String collegeId
-        +String[] skills
-        +String[] interests
-        +SocialLinks socialLinks
-        +String designation
-        +String[] subjects
-        +String officeLocation
-    }
-
-    class SocialLinks {
-        +String github
-        +String linkedin
-        +String portfolio
-    }
-
-    class RefreshToken {
-        +String token
-        +Date expiresAt
-        +Date createdAt
-    }
-
-    User *-- Profile
-    User *-- RefreshToken
-    Profile *-- SocialLinks
+    Faculty->>Client: Enters Title, Code, Syllabus, Schedule, Capacity
+    Client->>API: POST /api/courses (Bearer Token)
+    API->>Val: Validate Course Payload
+    Val-->>API: Validated Data
+    API->>DB: Check if course code is already taken
+    alt Course code exists
+        DB-->>API: Existing Course Found
+        API-->>Client: 409 Conflict ("Course with code already exists")
+    else Code is unique
+        API->>DB: Create Course with faculty = req.user._id
+        DB-->>API: Created Course Document
+        API-->>Client: 201 Created (Course JSON)
+        Client->>Client: Redirect to /courses/:id
+    end
 ```
 
 ---
 
-## 5. Security & Isolation Matrix
+## 5. Course Data Model
 
-| Capability / Action | Student | Faculty | Admin | Unauthenticated |
-|---|---|---|---|---|
-| View own profile (`GET /api/users/me`) | Allowed ✅ | Allowed ✅ | Allowed ✅ | Denied (401) ❌ |
-| Edit own profile (`PATCH /api/users/me`) | Allowed ✅ | Allowed ✅ | Allowed ✅ | Denied (401) ❌ |
-| View public profile (`GET /api/users/:id`) | Allowed ✅ | Allowed ✅ | Allowed ✅ | Denied (401) ❌ |
-| Modify another user's profile | Denied (404/403) ❌ | Denied (404/403) ❌ | Denied (404/403) ❌ | Denied (401) ❌ |
-| Change role via profile update | Denied (400) ❌ | Denied (400) ❌ | Denied (400) ❌ | Denied (401) ❌ |
-| Change password via profile update | Denied (400) ❌ | Denied (400) ❌ | Denied (400) ❌ | Denied (401) ❌ |
+```mermaid
+classDiagram
+    class Course {
+        +ObjectId _id
+        +String title
+        +String code
+        +String description
+        +String department
+        +Number semester
+        +Number credits
+        +ObjectId faculty
+        +EnrolledStudent[] enrolledStudents
+        +Number capacity
+        +String status ("draft" | "published" | "archived")
+        +SyllabusItem[] syllabus
+        +Schedule schedule
+        +Number enrolledCount (virtual)
+        +Date createdAt
+        +Date updatedAt
+    }
+
+    class EnrolledStudent {
+        +ObjectId student
+        +Date enrolledAt
+    }
+
+    class SyllabusItem {
+        +Number week
+        +String title
+        +String description
+    }
+
+    class Schedule {
+        +String[] days
+        +String time
+        +String room
+    }
+
+    Course *-- EnrolledStudent
+    Course *-- SyllabusItem
+    Course *-- Schedule
+```
+
+---
+
+## 6. Database Indexes & Performance Design
+
+| Collection | Index Fields | Type | Purpose |
+|---|---|---|---|
+| `courses` | `{ code: 1 }` | Unique | Enforces course code uniqueness (e.g. `CS101`) |
+| `courses` | `{ faculty: 1 }` | Single Field | Fast lookup for instructor's created courses |
+| `courses` | `{ department: 1, semester: 1, status: 1 }` | Compound | Fast student catalog filtering |
+| `courses` | `{ "enrolledStudents.student": 1 }` | Multikey | Instant retrieval of a student's enrolled courses |
+| `courses` | `{ title: "text", description: "text", code: "text" }` | Text Search | Full-text search across course catalog |
