@@ -15,6 +15,7 @@ import {
   getTasksForProject,
   getProjectActivities,
 } from '../controllers/taskController.js';
+import { getProjectMessages } from '../controllers/messageController.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
@@ -59,5 +60,8 @@ router.post(
 );
 router.get('/:id/tasks', authenticate, getTasksForProject);
 router.get('/:id/activities', authenticate, getProjectActivities);
+
+// Real-Time Chat Message History
+router.get('/:id/messages', authenticate, getProjectMessages);
 
 export default router;

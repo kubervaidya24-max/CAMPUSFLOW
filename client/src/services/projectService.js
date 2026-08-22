@@ -127,6 +127,15 @@ export const projectService = {
   getActivities: async (projectId) => {
     return await apiClient.get(`/projects/${projectId}/activities`);
   },
+
+  /**
+   * Get chat message history for project
+   * @param {string} projectId
+   * @param {Object} params - { limit, before }
+   */
+  getProjectMessages: async (projectId, params = {}) => {
+    return await apiClient.get(`/projects/${projectId}/messages`, { params });
+  },
 };
 
 export default projectService;

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectService } from '../services/projectService';
 import { useAuth } from '../context/AuthContext';
 import { KanbanBoard } from '../components/projects/KanbanBoard';
+import { ProjectChat } from '../components/chat/ProjectChat';
 import {
   FolderGit2,
   Users,
@@ -21,6 +22,7 @@ import {
   Loader2,
   Trash2,
   Edit3,
+  MessageSquare,
 } from 'lucide-react';
 
 export const ProjectDetailsPage = () => {
@@ -29,7 +31,7 @@ export const ProjectDetailsPage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban' | 'team' | 'activities'
+  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban' | 'chat' | 'team' | 'activities'
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('member');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -266,10 +268,10 @@ export const ProjectDetailsPage = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3 overflow-x-auto">
         <button
           onClick={() => setActiveTab('kanban')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all flex-shrink-0 ${
             activeTab === 'kanban'
               ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
               : 'bg-slate-900/60 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800/60'
@@ -283,8 +285,21 @@ export const ProjectDetailsPage = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('chat')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all flex-shrink-0 ${
+            activeTab === 'chat'
+              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+              : 'bg-slate-900/60 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800/60'
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Team Chat</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        </button>
+
+        <button
           onClick={() => setActiveTab('team')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all flex-shrink-0 ${
             activeTab === 'team'
               ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
               : 'bg-slate-900/60 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800/60'
@@ -299,7 +314,7 @@ export const ProjectDetailsPage = () => {
 
         <button
           onClick={() => setActiveTab('activities')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all flex-shrink-0 ${
             activeTab === 'activities'
               ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
               : 'bg-slate-900/60 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800/60'
@@ -315,7 +330,12 @@ export const ProjectDetailsPage = () => {
         <KanbanBoard projectId={project._id} tasks={tasks} members={members} />
       )}
 
-      {/* Tab 2: Team Roster View */}
+      {/* Tab 2: Live Team Chat View */}
+      {activeTab === 'chat' && (
+        <ProjectChat projectId={project._id} projectTitle={project.title} />
+      )}
+
+      {/* Tab 3: Team Roster View */}
       {activeTab === 'team' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -398,7 +418,7 @@ export const ProjectDetailsPage = () => {
         </div>
       )}
 
-      {/* Tab 3: Activity Timeline View */}
+      {/* Tab 4: Activity Timeline View */}
       {activeTab === 'activities' && (
         <div className="space-y-4 max-w-3xl">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider">
