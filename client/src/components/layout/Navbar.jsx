@@ -11,6 +11,7 @@ import {
   FolderGit2,
   Briefcase,
   FileCheck,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationBell } from '../notifications/NotificationBell';
@@ -40,7 +41,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 9
+                Level 10
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
@@ -51,51 +52,59 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Navigation links if logged in */}
           {isAuthenticated && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <Link
                 to="/courses"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
               >
                 <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Courses</span>
+                <span className="hidden md:inline">Courses</span>
               </Link>
 
               <Link
                 to="/assignments"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
-                <span>Assignments</span>
+                <span className="hidden md:inline">Assignments</span>
               </Link>
 
               <Link
                 to="/projects"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
               >
                 <FolderGit2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Projects</span>
+                <span className="hidden md:inline">Projects</span>
               </Link>
 
               <Link
                 to="/placements"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
               >
                 <Briefcase className="w-3.5 h-3.5 text-amber-400" />
-                <span>Placements</span>
+                <span className="hidden md:inline">Placements</span>
               </Link>
 
               <Link
                 to="/resumes"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors"
               >
                 <FileCheck className="w-3.5 h-3.5 text-purple-400" />
-                <span>Resume</span>
+                <span className="hidden md:inline">Resume</span>
+              </Link>
+
+              <Link
+                to="/analytics"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/30 text-xs font-bold text-indigo-300 transition-colors"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Analytics</span>
               </Link>
             </div>
           )}
 
           {/* API Health Pill */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs">
             <span className="relative flex h-2 w-2">
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
@@ -112,7 +121,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
               API: {isBackendOnline ? 'Operational' : 'Connecting...'}
             </span>
             {backendLatency !== null && (
-              <span className="text-slate-500 font-mono text-[11px] hidden md:inline">
+              <span className="text-slate-500 font-mono text-[11px] hidden xl:inline">
                 ({backendLatency}ms)
               </span>
             )}
@@ -122,7 +131,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
             href="/api/health"
             target="_blank"
             rel="noreferrer"
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 text-xs font-medium transition-all"
+            className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 text-xs font-medium transition-all"
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Health</span>

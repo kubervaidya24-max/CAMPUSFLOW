@@ -133,3 +133,28 @@ classDiagram
 | `messages` | `{ project: 1, createdAt: 1 }` | Compound | Fast chronological chat history retrieval |
 | `projects` | `{ "members.user": 1 }` | Multikey | Fast retrieval of user's active projects |
 | `tasks` | `{ project: 1, status: 1, order: 1 }` | Compound | Instant Kanban board column rendering |
+
+---
+
+## 10. Level 10: Data-Driven Analytics & Aggregation Engine
+
+### Architecture Flow:
+```mermaid
+graph TD
+    DB[("MongoDB Collections\n(Course, Assignment, Submission, Project, Task, DSA, JobApp)")] --> Pipeline["Optimized Compound-Indexed Aggregations\n($match, $group, $facet, $lookup)"]
+    Pipeline --> Controller["analyticsController.js\n(Transformation & Percentage Normalization)"]
+    Controller --> API["REST Analytics API\n(/api/analytics/student, /project, /placement)"]
+    API --> ClientService["analyticsService.js\n(React Query Cache Layer)"]
+    ClientService --> UI["AnalyticsDashboardPage.jsx\n(KPI Cards, Funnel Converter, Mastery Meters)"]
+```
+
+### Aggregation Pipeline Rationales:
+1. **Academic Credits & Courses (`Course.aggregate`)**:
+   - Uses `$match: { 'enrolledStudents.student': userId }` followed by `$facet` to compute total enrolled courses, total active credits, and department distribution in a single database roundtrip.
+2. **Assignment Performance & Grades (`Submission.aggregate`)**:
+   - Uses `$lookup` with the `assignments` collection to compute maximum total points against scored grades, calculating true dynamic completion rate % and average score % without fetching full submission histories into server memory.
+3. **Project & Task Velocity (`Task.aggregate`)**:
+   - Uses `$facet` to aggregate task counts by status (`DONE`, `IN_PROGRESS`, `TODO`) and group tasks by priority (`urgent`, `high`, `medium`, `low`) alongside individual member contributions.
+4. **Placement Funnel & Career Pipeline (`JobApplication.aggregate` + `DSAProblem.aggregate`)**:
+   - Groups applications by recruitment stages (`APPLIED` ➔ `OA` ➔ `TECHNICAL` ➔ `HR` ➔ `OFFER` / `REJECTED`) to dynamically calculate conversion and rejection rates alongside DSA difficulty and topic mastery progress.
+

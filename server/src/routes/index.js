@@ -10,6 +10,7 @@ import taskRoutes from './taskRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import placementRoutes from './placementRoutes.js';
 import resumeRoutes from './resumeRoutes.js';
+import analyticsRoutes from './analyticsRoutes.js';
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/tasks', taskRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/placements', placementRoutes);
 router.use('/resumes', resumeRoutes);
+router.use('/analytics', analyticsRoutes);
 
 export default router;

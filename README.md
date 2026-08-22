@@ -125,6 +125,14 @@ High-Fidelity PDF Engine (Vectorized ATS-Compliant PDF Export)
 | `PATCH` | `/api/resumes/:id` | Authenticated (Owner only) | Update resume sections, title, or template layout |
 | `DELETE` | `/api/resumes/:id` | Authenticated (Owner only) | Delete resume |
 
+### Level 10 — Data-Driven Analytics Dashboards
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/analytics/student` | Authenticated | Aggregated student performance (credits, assignments %, task velocity, career funnel) |
+| `GET` | `/api/analytics/overview` | Authenticated | High-level summary metrics for authenticated student |
+| `GET` | `/api/analytics/project/:projectId` | Project Member | Task status distribution, member contribution, and activity audit stream |
+| `GET` | `/api/analytics/placement` | Authenticated | Placement funnel stage conversions, rejection rates, and DSA topic mastery |
+
 ---
 
 ## ⚡ Quickstart Guide
@@ -161,7 +169,7 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests across monorepo (126 tests total: 94 backend + 32 frontend)
+# Run all tests across monorepo (133 tests total: 97 backend + 36 frontend)
 npm run test
 
 # Run backend integration tests only
