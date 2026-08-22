@@ -1,6 +1,6 @@
 # CampusFlow 🎓
 
-> **Unified Platform for College Students** — Academics, Projects, Messaging, Placement Prep & Career Growth.
+> **Unified Platform for College Students** — Academics, Coursework, Projects, Placement Prep & Career Growth.
 
 [![CampusFlow CI](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml/badge.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](https://opensource.org/licenses/MIT)
@@ -8,12 +8,13 @@
 [![React Version](https://img.shields.io/badge/React-18%2B-blue.svg)](https://react.dev/)
 [![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Refresh%20Rotation-emerald.svg)](https://jwt.io/)
 [![Courses](https://img.shields.io/badge/Courses-Syllabus%20%2B%20Enrollment-blueviolet.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
+[![Assignments](https://img.shields.io/badge/Assignments-Submissions%20%26%20Grading-sky.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 
 ---
 
 ## 📌 Project Overview
 
-**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for course management, team project tracking, real-time collaboration, placement preparation, and dynamic resume building.
+**CampusFlow** is a modern, full-stack MERN platform built to unify every phase of a student's collegiate journey. It replaces disconnected tools with a single, cohesive workspace for course management, assignments & deliverables, team project tracking, real-time collaboration, placement preparation, and dynamic resume building.
 
 ---
 
@@ -24,11 +25,11 @@ campusflow/
 ├── client/                     # Frontend (React 18, Vite, Tailwind CSS, TanStack Query, Axios)
 │   ├── public/                 # Static assets (Favicon, SVG logos)
 │   ├── src/
-│   │   ├── components/         # Reusable UI & Layouts (Navbar, Footer, CourseCard, ProtectedRoute)
+│   │   ├── components/         # Reusable UI (Navbar, Footer, CourseCard, AssignmentCard, ProtectedRoute)
 │   │   ├── context/            # Global AuthContext & session restore provider
-│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, ProfilePage, EditProfilePage, CoursesPage, CourseDetailsPage, CourseEditorPage, NotFoundPage)
-│   │   ├── services/           # Axios API clients (authService, userService, courseService)
-│   │   ├── tests/              # Frontend smoke, auth, guard, profile, and course tests (13 tests)
+│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, ProfilePage, EditProfilePage, CoursesPage, CourseDetailsPage, CourseEditorPage, AssignmentsPage, AssignmentDetailsPage, AssignmentEditorPage, NotFoundPage)
+│   │   ├── services/           # Axios API clients (authService, userService, courseService, assignmentService)
+│   │   ├── tests/              # Frontend smoke, auth, guard, profile, course, and assignment tests (16 tests)
 │   │   ├── App.jsx             # Root routing & AuthProvider wrapper
 │   │   ├── index.css           # Tailwind base styles & glassmorphism tokens
 │   │   └── main.jsx            # React 18 DOM mount
@@ -38,15 +39,15 @@ campusflow/
 ├── server/                     # Backend (Node.js, Express, Mongoose, Zod, JWT)
 │   ├── src/
 │   │   ├── config/             # Environment variables (env.js) & MongoDB connection (db.js)
-│   │   ├── controllers/        # Request handlers (authController, userController, courseController, healthController)
+│   │   ├── controllers/        # Request handlers (authController, userController, courseController, assignmentController, submissionController, healthController)
 │   │   ├── middleware/         # Error handling, 404, JWT authentication, role authorization, validation
-│   │   ├── models/             # Mongoose schemas (User, Course with indexing & virtual enrollment counters)
-│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/health)
+│   │   ├── models/             # Mongoose schemas (User, Course, Assignment, Submission)
+│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/courses, /api/assignments, /api/submissions, /api/health)
 │   │   ├── utils/              # Standardized API response, ApiError class, cookie helpers
-│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators)
+│   │   ├── validators/         # Zod schemas (authValidators, userValidators, courseValidators, assignmentValidators)
 │   │   ├── app.js              # Express app setup & middleware pipeline (Helmet, CORS, Morgan, CookieParser)
 │   │   └── server.js           # Server bootstrap & graceful lifecycle manager
-│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (43 tests)
+│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (55 tests)
 │   └── package.json
 │
 ├── docs/                       # Architecture & Setup guides
@@ -73,7 +74,7 @@ campusflow/
 | **Level 1** | **Authentication & RBAC (JWT, HTTP-only Cookies, Token Rotation, bcrypt, Zod)** | **Completed** ✅ |
 | **Level 2** | **User Profiles & Role-Based Access Control (Student & Faculty Profiles, Whitelisting)** | **Completed** ✅ |
 | **Level 3** | **Academic & Course Management (Syllabus Builder, Enrollment Guards, Capacity Limits)** | **Completed** ✅ |
-| Level 4 | Assignments, Submissions & Kanban Tasks | *Upcoming* |
+| **Level 4** | **Assignments & Submissions (Deadline Validation, Late Flags, Faculty Grading & Feedback)** | **Completed** ✅ |
 | Level 5 | Project Collaboration & Real-Time Chat (Socket.IO) | *Upcoming* |
 | Level 6 | Placement Preparation & Practice Sheets | *Upcoming* |
 | Level 7 | Dynamic ATS Resume Builder | *Upcoming* |
@@ -81,33 +82,34 @@ campusflow/
 
 ---
 
-## 📚 Level 3 Course Management Subsystem
+## 📝 Level 4 Assignments & Submissions Subsystem
 
-### 1. Course Capabilities by Role
+### 1. Capabilities by Role
 - **Faculty**:
-  - Author courses with weekly syllabus modules, lecture schedules (days, time, hall), and capacity limits.
-  - Publish or draft courses (`draft` courses remain invisible to students).
-  - Update and manage enrolled students with live registration tables.
-  - Delete or archive courses owned by them.
+  - Create assignments bound to courses they teach with custom point scales, due dates, strict/late submission toggles, and attached resource links.
+  - Edit or delete assignments.
+  - View all student submissions in a live evaluation roster.
+  - Grade student submissions with score validation (`score <= maxMarks`) and constructive remarks.
 - **Student**:
-  - Explore published courses filtered by Department and Semester.
-  - Search courses by code (e.g. `CS401`), title, or topic keywords.
-  - Single-click enrollment with duplicate prevention and capacity enforcement.
-  - View "My Enrolled Courses" and unenroll/leave courses.
-- **Admin**:
-  - System-wide visibility and course oversight.
+  - View all assignments scoped to enrolled courses.
+  - Filter assignments by status: `Pending`, `Submitted`, `Late`, `Graded`.
+  - Submit notes, solution URLs (e.g. GitHub repos), and attached deliverables.
+  - Update / resubmit deliverables before the deadline.
+  - View awarded grades and instructor feedback.
 
-### 2. Available Course APIs
+### 2. Available Assignment & Submission APIs
 
 | Method | Endpoint | Access Level | Description |
 |---|---|---|---|
-| `POST` | `/api/courses` | Faculty / Admin | Create new course with syllabus & schedule |
-| `GET` | `/api/courses` | Protected | List courses with filters (`department`, `semester`, `search`, `enrolled`, `facultyOnly`) |
-| `GET` | `/api/courses/:id` | Protected | Retrieve full course details, syllabus modules, and enrollment status |
-| `PATCH` | `/api/courses/:id` | Faculty Owner / Admin | Update course metadata, syllabus, capacity, or publish status |
-| `DELETE` | `/api/courses/:id` | Faculty Owner / Admin | Delete course |
-| `POST` | `/api/courses/:id/enroll` | Student | Enroll in a published course |
-| `DELETE` | `/api/courses/:id/enroll` | Student | Unenroll / leave a course |
+| `POST` | `/api/assignments` | Faculty / Admin | Create new assignment for a course |
+| `GET` | `/api/assignments` | Protected | List assignments (filtered by course & student enrollment) |
+| `GET` | `/api/assignments/:id` | Protected | Retrieve assignment details, attachments, and submission state |
+| `PATCH` | `/api/assignments/:id` | Faculty Owner / Admin | Update assignment metadata or deadline |
+| `DELETE` | `/api/assignments/:id` | Faculty Owner / Admin | Delete assignment and associated submissions |
+| `POST` | `/api/assignments/:id/submit` | Student | Submit or update assignment deliverable (guards against deadline) |
+| `GET` | `/api/assignments/:id/submissions` | Faculty Owner / Admin | Retrieve all student submissions for an assignment |
+| `GET` | `/api/submissions/me` | Student | List all submissions and grades for the current student |
+| `PATCH` | `/api/submissions/:id/grade` | Faculty Owner / Admin | Evaluate and score student submission |
 
 ---
 
@@ -127,19 +129,11 @@ npm install
 
 ### 2. Configure Environment Variables
 ```bash
-# Server environment
 cp server/.env.example server/.env
-
-# Client environment
 cp client/.env.example client/.env
 ```
 
-### 3. Start Local MongoDB (Optional Docker)
-```bash
-docker compose up -d mongodb
-```
-
-### 4. Run Both Client & Server Concurrently
+### 3. Run Both Client & Server Concurrently
 ```bash
 npm run dev
 ```
@@ -153,7 +147,7 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests across monorepo (56 tests total: 43 backend + 13 frontend)
+# Run all tests across monorepo (71 tests total: 55 backend + 16 frontend)
 npm run test
 
 # Run backend integration tests only

@@ -6,7 +6,7 @@ CampusFlow is designed using the **MERN** (MongoDB, Express, React, Node.js) tec
 
 ---
 
-## 2. Course Management Architecture (Level 3)
+## 2. Course & Assignment Architecture
 
 ```mermaid
 graph TD
@@ -15,80 +15,109 @@ graph TD
     Gateway --> AuthMiddleware["Auth Middleware (authenticate)"]
     AuthMiddleware --> RoleGuard["Role Authorization Guard (authorize(...roles))"]
     
-    RoleGuard --> CourseCtrl["Course Controller"]
+    RoleGuard --> AssignmentCtrl["Assignment & Submission Controllers"]
     
-    subgraph Operations ["Course Operations"]
-        FacultyOps["Faculty Actions<br/>- Create / Edit / Delete Course<br/>- Publish / Draft Toggle<br/>- Author Syllabus Modules<br/>- View Enrolled Students"]
-        StudentOps["Student Actions<br/>- Search & Filter Catalog<br/>- View Course Syllabus & Schedule<br/>- Enroll (Capacity & Duplicate Guarded)<br/>- Leave Enrolled Course"]
+    subgraph Operations ["Level 4 Operations"]
+        FacultyOps["Faculty Actions<br/>- Create / Edit / Delete Assignments<br/>- Attach Resource Links<br/>- Set Due Dates & Max Points<br/>- Evaluate & Grade Submissions"]
+        StudentOps["Student Actions<br/>- Filter by Course & Due Date<br/>- Submit Solution Notes & URLs<br/>- Update Submission Before Deadline<br/>- View Marks & Feedback"]
     end
     
-    CourseCtrl --> CourseModel[("MongoDB (Course Collection)<br/>- Unique Index on code<br/>- Compound Index: department + semester + status<br/>- Enrolled Students Index")]
+    AssignmentCtrl --> AssignmentModel[("MongoDB: Assignment Collection<br/>- Index: course + dueDate<br/>- Index: faculty")]
+    AssignmentCtrl --> SubmissionModel[("MongoDB: Submission Collection<br/>- Unique Compound Index: assignment + student<br/>- Index: course + student")]
 ```
 
 ---
 
-## 3. Student Enrollment Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant Client as React Client (CoursesPage / Details)
-    participant API as Express API (/api/courses/:id/enroll)
-    participant Auth as JWT Auth Middleware
-    participant DB as MongoDB (Course Model)
-
-    Student->>Client: Clicks "Enroll in Course"
-    Client->>API: POST /api/courses/:id/enroll (Bearer Token)
-    API->>Auth: Verify Token & Student Role
-    Auth-->>API: Validated Student Session (req.user)
-    API->>DB: Find Course by ID
-    alt Course status is not 'published'
-        API-->>Client: 400 Bad Request ("Course is not published")
-    else Student is already enrolled in course
-        API-->>Client: 409 Conflict ("You are already enrolled in this course")
-    else Course capacity is reached
-        API-->>Client: 400 Bad Request ("Course capacity limit reached")
-    else Valid enrollment
-        API->>DB: Push { student: studentId, enrolledAt: Date.now() }
-        DB-->>API: Saved Course Document
-        API-->>Client: 200 OK ("Successfully enrolled in course")
-        Client->>Client: Invalidate 'courses' query & toggle button to "Enrolled"
-    end
-```
-
----
-
-## 4. Faculty Course Creation & Management Flow
+## 3. Assignment Creation Flow
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Faculty
-    participant Client as React Client (CourseEditorPage)
-    participant API as Express API (/api/courses)
-    participant Val as Zod Validator (createCourseSchema)
-    participant DB as MongoDB (Course Collection)
+    participant Client as React Client (AssignmentEditorPage)
+    participant API as Express API (/api/assignments)
+    participant Val as Zod Validator (createAssignmentSchema)
+    participant DB as MongoDB (Assignment Collection)
 
-    Faculty->>Client: Enters Title, Code, Syllabus, Schedule, Capacity
-    Client->>API: POST /api/courses (Bearer Token)
-    API->>Val: Validate Course Payload
+    Faculty->>Client: Enters Title, Description, Course, Due Date, Points, Attachments
+    Client->>API: POST /api/assignments (Bearer Token)
+    API->>Val: Validate Assignment Payload
     Val-->>API: Validated Data
-    API->>DB: Check if course code is already taken
-    alt Course code exists
-        DB-->>API: Existing Course Found
-        API-->>Client: 409 Conflict ("Course with code already exists")
-    else Code is unique
-        API->>DB: Create Course with faculty = req.user._id
-        DB-->>API: Created Course Document
-        API-->>Client: 201 Created (Course JSON)
-        Client->>Client: Redirect to /courses/:id
+    API->>DB: Check if Course exists & Faculty is Instructor
+    alt Faculty is not course owner
+        API-->>Client: 403 Forbidden ("You do not have permission")
+    else Faculty owns course
+        API->>DB: Create Assignment Document
+        DB-->>API: Saved Assignment
+        API-->>Client: 201 Created (Assignment JSON)
+        Client->>Client: Redirect to /assignments/:id
     end
 ```
 
 ---
 
-## 5. Course Data Model
+## 4. Student Submission Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student
+    participant Client as React Client (AssignmentDetailsPage)
+    participant API as Express API (/api/assignments/:id/submit)
+    participant Auth as JWT Auth Middleware
+    participant DB as MongoDB (Submission Model)
+
+    Student->>Client: Submits Solution Text, GitHub URL, and Attachments
+    Client->>API: POST /api/assignments/:id/submit (Bearer Token)
+    API->>Auth: Verify Token & Student Role
+    Auth-->>API: Validated Student Session (req.user)
+    API->>DB: Find Assignment & Check Course Enrollment
+    alt Student is not enrolled in course
+        API-->>Client: 403 Forbidden ("Must be enrolled in course")
+    else Past deadline and allowLate is false
+        API-->>Client: 400 Bad Request ("Deadline passed; late submissions not allowed")
+    else Valid Submission (On-time or Late Allowed)
+        Note over API,DB: Determine status ('submitted' or 'late')
+        API->>DB: Upsert Submission Document for (assignment, student)
+        DB-->>API: Saved Submission Record
+        API-->>Client: 200 OK (Submission JSON with status)
+        Client->>Client: Invalidate 'assignment' query & show confirmation
+    end
+```
+
+---
+
+## 5. Faculty Grading Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Faculty
+    participant Client as React Client (AssignmentDetailsPage)
+    participant API as Express API (/api/submissions/:id/grade)
+    participant Val as Zod Validator (gradeSubmissionSchema)
+    participant DB as MongoDB (Submission Model)
+
+    Faculty->>Client: Enters Score & Feedback Remarks
+    Client->>API: PATCH /api/submissions/:id/grade (Bearer Token)
+    API->>Val: Validate Score & Feedback
+    Val-->>API: Validated Payload
+    API->>DB: Fetch Submission & Check Assignment Ownership
+    alt Non-owning faculty
+        API-->>Client: 403 Forbidden
+    else Score exceeds assignment max points
+        API-->>Client: 400 Bad Request ("Score exceeds maximum points")
+    else Valid evaluation
+        API->>DB: Update grade = { score, feedback, gradedAt, gradedBy } & status = 'graded'
+        DB-->>API: Saved Submission Document
+        API-->>Client: 200 OK (Graded Submission JSON)
+        Client->>Client: Invalidate submissions query & update UI
+    end
+```
+
+---
+
+## 6. Data Model Relationships
 
 ```mermaid
 classDiagram
@@ -96,51 +125,56 @@ classDiagram
         +ObjectId _id
         +String title
         +String code
-        +String description
-        +String department
-        +Number semester
-        +Number credits
         +ObjectId faculty
         +EnrolledStudent[] enrolledStudents
-        +Number capacity
-        +String status ("draft" | "published" | "archived")
-        +SyllabusItem[] syllabus
-        +Schedule schedule
-        +Number enrolledCount (virtual)
-        +Date createdAt
-        +Date updatedAt
     }
 
-    class EnrolledStudent {
-        +ObjectId student
-        +Date enrolledAt
-    }
-
-    class SyllabusItem {
-        +Number week
+    class Assignment {
+        +ObjectId _id
         +String title
         +String description
+        +ObjectId course
+        +ObjectId faculty
+        +Date dueDate
+        +Number totalPoints
+        +Boolean allowLate
+        +Attachment[] attachments
+        +String status
+        +Date createdAt
     }
 
-    class Schedule {
-        +String[] days
-        +String time
-        +String room
+    class Submission {
+        +ObjectId _id
+        +ObjectId assignment
+        +ObjectId course
+        +ObjectId student
+        +String content
+        +Attachment[] attachments
+        +Date submittedAt
+        +String status
+        +Grade grade
     }
 
-    Course *-- EnrolledStudent
-    Course *-- SyllabusItem
-    Course *-- Schedule
+    class Grade {
+        +Number score
+        +String feedback
+        +Date gradedAt
+        +ObjectId gradedBy
+    }
+
+    Course "1" <-- "*" Assignment : belongs to
+    Assignment "1" <-- "*" Submission : receives
+    Submission *-- Grade : evaluated with
 ```
 
 ---
 
-## 6. Database Indexes & Performance Design
+## 7. Database Indexes & Performance Design
 
 | Collection | Index Fields | Type | Purpose |
 |---|---|---|---|
-| `courses` | `{ code: 1 }` | Unique | Enforces course code uniqueness (e.g. `CS101`) |
-| `courses` | `{ faculty: 1 }` | Single Field | Fast lookup for instructor's created courses |
-| `courses` | `{ department: 1, semester: 1, status: 1 }` | Compound | Fast student catalog filtering |
-| `courses` | `{ "enrolledStudents.student": 1 }` | Multikey | Instant retrieval of a student's enrolled courses |
-| `courses` | `{ title: "text", description: "text", code: "text" }` | Text Search | Full-text search across course catalog |
+| `assignments` | `{ course: 1, dueDate: 1 }` | Compound | Fast retrieval of course assignments sorted by deadline |
+| `assignments` | `{ faculty: 1 }` | Single Field | Instructor assignment management |
+| `submissions` | `{ assignment: 1, student: 1 }` | Unique Compound | Strict guarantee of one submission per student per assignment |
+| `submissions` | `{ course: 1, student: 1 }` | Compound | Rapid lookup of student submissions across a course |
+| `submissions` | `{ student: 1 }` | Single Field | Student grades and submission history lookup |
