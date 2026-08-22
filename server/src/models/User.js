@@ -41,16 +41,25 @@ const userSchema = new mongoose.Schema(
       avatar: {
         type: String,
         default: '',
+        trim: true,
       },
       bio: {
         type: String,
-        maxlength: [250, 'Bio cannot exceed 250 characters'],
+        maxlength: [500, 'Bio cannot exceed 500 characters'],
         default: '',
+        trim: true,
       },
       department: {
         type: String,
         trim: true,
         default: '',
+      },
+      // Student-specific profile fields
+      semester: {
+        type: Number,
+        min: [1, 'Semester must be between 1 and 12'],
+        max: [12, 'Semester must be between 1 and 12'],
+        default: 1,
       },
       graduationYear: {
         type: Number,
@@ -58,6 +67,46 @@ const userSchema = new mongoose.Schema(
         max: [2040, 'Graduation year is invalid'],
       },
       collegeId: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      skills: {
+        type: [String],
+        default: [],
+      },
+      interests: {
+        type: [String],
+        default: [],
+      },
+      socialLinks: {
+        github: {
+          type: String,
+          trim: true,
+          default: '',
+        },
+        linkedin: {
+          type: String,
+          trim: true,
+          default: '',
+        },
+        portfolio: {
+          type: String,
+          trim: true,
+          default: '',
+        },
+      },
+      // Faculty-specific profile fields
+      designation: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      subjects: {
+        type: [String],
+        default: [],
+      },
+      officeLocation: {
         type: String,
         trim: true,
         default: '',

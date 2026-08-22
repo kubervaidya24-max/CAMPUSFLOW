@@ -7,6 +7,7 @@
 [![Node Version](https://img.shields.io/badge/Node.js-v20%2B-emerald.svg)](https://nodejs.org/)
 [![React Version](https://img.shields.io/badge/React-18%2B-blue.svg)](https://react.dev/)
 [![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Refresh%20Rotation-emerald.svg)](https://jwt.io/)
+[![RBAC](https://img.shields.io/badge/RBAC-Student%20%7C%20Faculty%20%7C%20Admin-blueviolet.svg)](https://github.com/kubervaidya24-max/CAMPUSFLOW)
 
 ---
 
@@ -25,9 +26,9 @@ campusflow/
 │   ├── src/
 │   │   ├── components/         # Reusable UI & Layouts (Navbar, Footer, ErrorBoundary, ProtectedRoute)
 │   │   ├── context/            # Global AuthContext & session restore provider
-│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, NotFoundPage)
-│   │   ├── services/           # Axios API client with silent refresh queue & endpoint callers
-│   │   ├── tests/              # Frontend smoke, auth, and guard tests
+│   │   ├── pages/              # Route pages (LandingPage, LoginPage, RegisterPage, DashboardPage, ProfilePage, EditProfilePage, NotFoundPage)
+│   │   ├── services/           # Axios API client with silent refresh queue, authService, userService
+│   │   ├── tests/              # Frontend smoke, auth, guard, and profile tests (10 tests)
 │   │   ├── App.jsx             # Root routing & AuthProvider wrapper
 │   │   ├── index.css           # Tailwind base styles & glassmorphism tokens
 │   │   └── main.jsx            # React 18 DOM mount
@@ -37,15 +38,15 @@ campusflow/
 ├── server/                     # Backend (Node.js, Express, Mongoose, Zod, JWT)
 │   ├── src/
 │   │   ├── config/             # Environment variables (env.js) & MongoDB connection (db.js)
-│   │   ├── controllers/        # Request handlers (authController, healthController)
+│   │   ├── controllers/        # Request handlers (authController, userController, healthController)
 │   │   ├── middleware/         # Error handling, 404, JWT authentication, role authorization, validation
-│   │   ├── models/             # Mongoose schemas (User with bcrypt hashing & token rotation)
-│   │   ├── routes/             # Express API routes (/api/auth, /api/health)
+│   │   ├── models/             # Mongoose schemas (User with student & faculty profiles, bcrypt hashing, token rotation)
+│   │   ├── routes/             # Express API routes (/api/auth, /api/users, /api/health)
 │   │   ├── utils/              # Standardized API response, ApiError class, cookie helpers
-│   │   ├── validators/         # Zod schemas (registerSchema, loginSchema, refreshTokenSchema)
+│   │   ├── validators/         # Zod schemas (authValidators, userValidators)
 │   │   ├── app.js              # Express app setup & middleware pipeline (Helmet, CORS, Morgan, CookieParser)
 │   │   └── server.js           # Server bootstrap & graceful lifecycle manager
-│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer
+│   ├── tests/                  # Backend Supertest integration test suite with MongoMemoryServer (27 tests)
 │   └── package.json
 │
 ├── docs/                       # Architecture & Setup guides
@@ -70,7 +71,7 @@ campusflow/
 |---|---|---|
 | **Level 0** | **Monorepo Foundation, Express Server, Vite Client, Health API & CI** | **Completed** ✅ |
 | **Level 1** | **Authentication & RBAC (JWT, HTTP-only Cookies, Token Rotation, bcrypt, Zod)** | **Completed** ✅ |
-| Level 2 | User Profiles & Profile Management | *Upcoming* |
+| **Level 2** | **User Profiles & Role-Based Access Control (Student & Faculty Profiles, Whitelisting)** | **Completed** ✅ |
 | Level 3 | Academic & Course Management | *Upcoming* |
 | Level 4 | Assignments, Submissions & Kanban Tasks | *Upcoming* |
 | Level 5 | Project Collaboration & Real-Time Chat (Socket.IO) | *Upcoming* |
@@ -80,26 +81,30 @@ campusflow/
 
 ---
 
-## 🔐 Level 1 Authentication & Authorization Subsystem
+## 👤 Level 2 Profile & RBAC Subsystem
 
-### 1. Token Strategy & Security Decisions
-- **Access Tokens**: Short-lived (15 minutes) in-memory Bearer JWTs signed with `JWT_SECRET` containing `{ id, role, email, name, jti }`.
-- **Refresh Tokens**: Long-lived (7 days) signed with `JWT_REFRESH_SECRET`, stored inside an `httpOnly`, `secure`, `sameSite: 'lax'` cookie and indexed in the MongoDB `User.refreshTokens` array.
-- **Token Rotation & Replay Protection**: Each `/api/auth/refresh` invocation revokes the old refresh token, replaces it with a new rotated pair, and invalidates any reused or stolen refresh tokens.
-- **Password Security**: Salted & hashed using `bcryptjs` (salt rounds: 12). Passwords are never stored in plaintext and are excluded from default database queries (`select: false`).
-- **Validation**: Strict input validation using **Zod** verifying email syntax, name length, and password complexity (uppercase, lowercase, number, special symbol).
-- **Role-Based Access Control (RBAC)**: Support for `student`, `faculty`, and `admin` roles, enforced at both API route and React component levels.
+### 1. Student & Faculty Profile Data Model
+- **Student Profile**: Name, avatar / preset, department, semester (1-12), graduation year, college roll ID, bio, technical skills tags, academic interests tags, social portfolio links (GitHub, LinkedIn, Website).
+- **Faculty Profile**: Name, avatar, department, designation (e.g. Professor, Associate Professor), office location / cabin, subjects taught tags, research bio.
+- **Admin Role**: Minimal privileges foundation; access to all user profiles and system diagnostic checks.
 
-### 2. Available Authentication APIs
+### 2. Available User & Profile APIs
 
-| Method | Endpoint | Access | Description |
+| Method | Endpoint | Access Level | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Public | Register new user with name, email, password, role & profile |
-| `POST` | `/api/auth/login` | Public | Sign in with email & password; sets HTTP-only refresh cookie |
-| `POST` | `/api/auth/refresh` | Public (Cookie/Body) | Rotate refresh token and issue new access token |
-| `POST` | `/api/auth/logout` | Public (Cookie/Body) | Invalidate refresh token in database and clear auth cookies |
-| `GET` | `/api/auth/me` | Protected | Fetch authenticated user profile |
-| `GET` | `/api/health` | Public | System status, database state, and uptime diagnostic |
+| `GET` | `/api/users/me` | Protected (`Bearer`) | Retrieve current user's comprehensive profile |
+| `PATCH` | `/api/users/me` | Protected (`Bearer`) | Update current user's profile with strict field whitelisting |
+| `GET` | `/api/users/:id` | Protected (`Bearer`) | Retrieve public profile of any user by ID |
+| `POST` | `/api/auth/register` | Public | Register new user account |
+| `POST` | `/api/auth/login` | Public | Sign in with email & password |
+| `POST` | `/api/auth/refresh` | Public (Cookie/Body) | Token rotation & exchange |
+| `POST` | `/api/auth/logout` | Public (Cookie/Body) | Invalidate refresh tokens and clear cookies |
+| `GET` | `/api/health` | Public | Diagnostic system health check |
+
+### 3. Security Decisions & RBAC Controls
+- **Strict Whitelisting**: The `PATCH /api/users/me` validator uses strict Zod parsing. Any attempt to modify `role`, `password`, `_id`, or `refreshTokens` is completely rejected with `400 Bad Request`.
+- **Identity Isolation**: A user can only modify their own profile (`/api/users/me`). Direct modification of other users (`/api/users/:id`) is disallowed.
+- **Image Architecture**: Built-in curated SVG avatar presets + custom URL image support with live preview and initials fallback, avoiding unnecessary third-party paid dependencies.
 
 ---
 
@@ -118,7 +123,6 @@ npm install
 ```
 
 ### 2. Configure Environment Variables
-Copy the `.env.example` templates to both server and client:
 ```bash
 # Server environment
 cp server/.env.example server/.env
@@ -146,19 +150,19 @@ npm run dev
 ## 🧪 Testing & Quality
 
 ```bash
-# Run all tests (Server + Client: 25 tests)
+# Run all tests across monorepo (37 tests total: 27 backend + 10 frontend)
 npm run test
 
-# Run backend tests only (Supertest integration suite)
+# Run backend integration tests only
 npm run test:server
 
-# Run frontend tests only (React Testing Library suite)
+# Run frontend component tests only
 npm run test:client
 
-# Run linting across monorepo (0 errors, 0 warnings)
+# Run linting across all workspaces (0 errors, 0 warnings)
 npm run lint
 
-# Production client build test
+# Production client bundle build
 npm run build
 ```
 

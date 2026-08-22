@@ -6,146 +6,116 @@ CampusFlow is designed using the **MERN** (MongoDB, Express, React, Node.js) tec
 
 ---
 
-## 2. Authentication & Authorization Architecture (Level 1)
-
-### 2.1 Security & Token Architecture
+## 2. Role-Based Access Control (RBAC) Architecture (Level 2)
 
 ```mermaid
 graph TD
-    Client["Client Browser"] -->|1. POST /api/auth/login| Server["Express Server"]
-    Server -->|2. Verify bcrypt Hash| DB[("MongoDB (User Model)")]
-    Server -->|3. Set HTTP-Only Refresh Cookie + Return Access Token JSON| Client
-    Client -->|4. Request with Authorization: Bearer AccessToken| Protected["Protected Endpoints (/api/auth/me)"]
-    Client -->|5. Automatic Silent Refresh via Cookie| RefreshEndpoint["/api/auth/refresh"]
-    RefreshEndpoint -->|6. Token Rotation & Verification| DB
-```
-
-### 2.2 Registration Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Client as React Client (RegisterPage)
-    participant API as Express API (/api/auth/register)
-    participant Val as Zod Validator
-    participant DB as MongoDB (User Collection)
-
-    User->>Client: Enters Name, Email, Password, Role, Profile
-    Client->>API: POST /api/auth/register
-    API->>Val: Validate payload schema & password complexity
-    Val-->>API: Validated data
-    API->>DB: Check if email already exists
-    alt Email already taken
-        DB-->>API: User found
-        API-->>Client: 409 Conflict ("An account with this email already exists")
-    else Email available
-        API->>API: Hash password with bcryptjs (12 salt rounds)
-        API->>API: Generate Access Token (15m) & Refresh Token (7d) with unique jti
-        API->>DB: Save User with hashed password & refreshTokens array
-        API-->>Client: 201 Created (Set-Cookie: refreshToken + accessToken JSON)
-        Client->>Client: Save Access Token in AuthContext & redirect to /dashboard
+    Client["React Client (Axios + AuthContext)"] --> Gateway["Express API Gateway"]
+    
+    Gateway --> AuthMiddleware["Auth Middleware (authenticate)"]
+    AuthMiddleware --> RoleMiddleware["Role Authorization Guard (authorize(...roles))"]
+    
+    RoleMiddleware -->|student, faculty, admin| UserCtrl["User Profile Controller"]
+    
+    subgraph Roles ["Role Capabilities"]
+        Student["Student Role<br/>- View/Edit Own Profile<br/>- View Peer & Faculty Profiles<br/>- Semester, Skills, Social Links"]
+        Faculty["Faculty Role<br/>- View/Edit Own Profile<br/>- View Student Profiles<br/>- Designation, Subjects, Cabin"]
+        Admin["Admin Role<br/>- Read-all Access<br/>- System Diagnostics"]
     end
-```
-
-### 2.3 Login Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Client as React Client (LoginPage)
-    participant API as Express API (/api/auth/login)
-    participant DB as MongoDB (User Collection)
-
-    User->>Client: Enters Email & Password
-    Client->>API: POST /api/auth/login
-    API->>DB: Find User by email (select: +password)
-    alt User not found or password mismatch
-        API-->>Client: 401 Unauthorized ("Invalid email or password")
-    else Credentials valid
-        API->>API: Generate Access Token (15m) & new Refresh Token (7d)
-        API->>DB: Prune expired tokens and append new refresh token
-        API-->>Client: 200 OK (Set-Cookie: refreshToken + accessToken JSON)
-        Client->>Client: Update AuthContext state & redirect to /dashboard
-    end
-```
-
-### 2.4 Silent Refresh & Token Rotation Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Client as React Client (Axios Interceptor)
-    participant API as Express API (/api/auth/refresh)
-    participant DB as MongoDB
-
-    Client->>API: POST /api/auth/refresh (Cookie: refreshToken)
-    API->>API: Verify JWT signature with JWT_REFRESH_SECRET
-    API->>DB: Find User & verify token exists in User.refreshTokens
-    alt Token missing from DB (Compromise / Reuse detected)
-        API->>DB: Invalidate ALL active refresh tokens
-        API-->>Client: 401 Unauthorized ("Session compromised. Sign in again.")
-    else Token valid
-        API->>API: Generate NEW Access Token & NEW rotated Refresh Token
-        API->>DB: Remove old refresh token & save new refresh token
-        API-->>Client: 200 OK (Set-Cookie: newRefreshToken + newAccessToken)
-        Client->>Client: Replay original failed HTTP request seamlessly
-    end
-```
-
-### 2.5 Logout Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Client as React Client
-    participant API as Express API (/api/auth/logout)
-    participant DB as MongoDB
-
-    User->>Client: Clicks Logout
-    Client->>API: POST /api/auth/logout (Cookie: refreshToken)
-    API->>DB: Pull refresh token from User.refreshTokens
-    API-->>Client: 200 OK (Clear-Cookie: refreshToken)
-    Client->>Client: Reset AuthContext user = null, token = null & redirect to /login
 ```
 
 ---
 
-## 3. Database Schema: User Model
+## 3. User Profile Update & Whitelisting Permission Flow
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Authenticated User
+    participant Client as React Client (EditProfilePage)
+    participant API as Express API (/api/users/me)
+    participant Auth as JWT Auth Middleware
+    participant Val as Zod Validator (updateProfileSchema)
+    participant DB as MongoDB (User Collection)
+
+    User->>Client: Edits Bio, Semester, Skills, Social Links
+    Client->>API: PATCH /api/users/me (Bearer Token)
+    API->>Auth: Verify Access Token signature
+    Auth->>Auth: Attach req.user
+    API->>Val: Validate request payload against strict whitelist
+    alt Payload contains forbidden keys (e.g. role, password, _id)
+        Val-->>Client: 400 Bad Request ("Validation failed: Unrecognized key")
+    else Payload valid
+        Val-->>API: Whitelisted payload
+        API->>DB: Update permitted profile fields on req.user & save()
+        DB-->>API: Updated User Document
+        API-->>Client: 200 OK (Updated User JSON)
+        Client->>Client: Update AuthContext state & navigate to /profile
+    end
 ```
-User Schema {
-  name: String (required, trim, min: 2, max: 50)
-  email: String (required, unique, lowercase, trim, indexed)
-  password: String (required, select: false, bcrypt hashed)
-  role: Enum ['student', 'faculty', 'admin'] (default: 'student', indexed)
-  profile: {
-    avatar: String
-    bio: String (max: 250)
-    department: String
-    graduationYear: Number
-    collegeId: String
-  }
-  refreshTokens: [
-    {
-      token: String (required)
-      expiresAt: Date (required)
-      createdAt: Date (default: Date.now)
+
+---
+
+## 4. User Data Model (Level 2 Extended)
+
+```mermaid
+classDiagram
+    class User {
+        +ObjectId _id
+        +String name
+        +String email
+        +String password (select: false)
+        +String role ("student" | "faculty" | "admin")
+        +Profile profile
+        +RefreshToken[] refreshTokens
+        +Date createdAt
+        +Date updatedAt
+        +comparePassword(candidate)
+        +generateAccessToken()
+        +generateRefreshToken()
     }
-  ]
-  createdAt: Date (timestamp)
-  updatedAt: Date (timestamp)
-}
+
+    class Profile {
+        +String avatar
+        +String bio (max 500)
+        +String department
+        +Number semester (1-12)
+        +Number graduationYear
+        +String collegeId
+        +String[] skills
+        +String[] interests
+        +SocialLinks socialLinks
+        +String designation
+        +String[] subjects
+        +String officeLocation
+    }
+
+    class SocialLinks {
+        +String github
+        +String linkedin
+        +String portfolio
+    }
+
+    class RefreshToken {
+        +String token
+        +Date expiresAt
+        +Date createdAt
+    }
+
+    User *-- Profile
+    User *-- RefreshToken
+    Profile *-- SocialLinks
 ```
 
 ---
 
-## 4. Key Security Decisions
+## 5. Security & Isolation Matrix
 
-1. **XSS Mitigation**: Long-lived refresh tokens are stored exclusively in `httpOnly`, `secure`, `sameSite: 'lax'` cookies, preventing malicious client scripts from reading them.
-2. **Access Token Lifespan**: Short-lived (15 minutes) in-memory tokens minimize the risk window if intercepted.
-3. **Token Rotation & Revocation**: Refresh tokens are single-use. Replay detection automatically invalidates all active sessions for that account.
-4. **Bcrypt Hashing**: Passwords undergo 12 rounds of salted bcrypt hashing.
-5. **Role-Based Guards**: Protected endpoints and client routes check permissions before serving data or views.
+| Capability / Action | Student | Faculty | Admin | Unauthenticated |
+|---|---|---|---|---|
+| View own profile (`GET /api/users/me`) | Allowed ✅ | Allowed ✅ | Allowed ✅ | Denied (401) ❌ |
+| Edit own profile (`PATCH /api/users/me`) | Allowed ✅ | Allowed ✅ | Allowed ✅ | Denied (401) ❌ |
+| View public profile (`GET /api/users/:id`) | Allowed ✅ | Allowed ✅ | Allowed ✅ | Denied (401) ❌ |
+| Modify another user's profile | Denied (404/403) ❌ | Denied (404/403) ❌ | Denied (404/403) ❌ | Denied (401) ❌ |
+| Change role via profile update | Denied (400) ❌ | Denied (400) ❌ | Denied (400) ❌ | Denied (401) ❌ |
+| Change password via profile update | Denied (400) ❌ | Denied (400) ❌ | Denied (400) ❌ | Denied (401) ❌ |

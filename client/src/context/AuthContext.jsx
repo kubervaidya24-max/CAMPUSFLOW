@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { authService } from '../services/authService';
 import { setAuthToken } from '../services/apiClient';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -59,6 +59,22 @@ export const AuthProvider = ({ children }) => {
     return response;
   };
 
+  // Update user in state after profile update
+  const updateUser = (newUserData) => {
+    setUser((prev) => ({
+      ...prev,
+      ...newUserData,
+      profile: {
+        ...prev?.profile,
+        ...newUserData?.profile,
+        socialLinks: {
+          ...prev?.profile?.socialLinks,
+          ...newUserData?.profile?.socialLinks,
+        },
+      },
+    }));
+  };
+
   // Logout handler
   const logout = async () => {
     try {
@@ -79,6 +95,7 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     login,
     register,
+    updateUser,
     logout,
   };
 

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Layers, Activity, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { Layers, Activity, LogOut, LogIn, UserPlus, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
@@ -27,7 +27,7 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
                 CampusFlow
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Level 1
+                Level 2
               </span>
             </div>
             <span className="text-xs text-slate-400">Unified Student Platform</span>
@@ -70,14 +70,36 @@ export const Navbar = ({ isBackendOnline = false, backendLatency = null }) => {
             <span>Health</span>
           </a>
 
-          {/* Auth Controls */}
+          {/* Auth Navigation */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <Link
                 to="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition-colors"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Dashboard</span>
+              </Link>
+
+              <Link
+                to="/profile"
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-200 transition-colors"
               >
-                <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white">
+                {user?.profile?.avatar ? (
+                  <img
+                    src={user.profile.avatar}
+                    alt={user.name}
+                    className="w-5 h-5 rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div
+                  style={{ display: user?.profile?.avatar ? 'none' : 'flex' }}
+                  className="w-5 h-5 rounded-full bg-indigo-600 items-center justify-center text-[10px] font-bold text-white"
+                >
                   {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
                 <span className="hidden sm:inline font-semibold">{user?.name?.split(' ')[0]}</span>
